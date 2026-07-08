@@ -16,31 +16,10 @@ EN Sample Questions
 
 What is the main difference between ionic and covalent bonding?
 How does metallic bonding explain electrical conductivity?
-
 Compare melting point trends of ionic, covalent, and metallic substances.
-
 What are the naming steps for binary ionic compounds?
-
 Classify NaCl, CO2, and Cu by bond type and explain why.
-
 What is the difference between polar and nonpolar covalent bonds?
-
 How do polyatomic ions affect compound naming?
-
 Which bond type is typically associated with brittle crystal structures?
-
 How does bond type influence solubility behavior?
-
-Summarize common misconceptions in beginner bond-type questions.
-
-Cevap kalitesi kontrol checklist
-
-Cevap soruyla alakalı mı?
-
-Citation gerçekten ilgili metinden mi geliyor?
-
-Yetersiz bağlamda model bunu dürüstçe söylüyor mu?
-
-TR soruda TR, EN soruda EN yanıtlıyor mu?
-
-Aynı soruda tekrarlı koşulda tutarlı yanıt veriyor mu?

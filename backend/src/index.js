@@ -37,6 +37,10 @@ const modeConfig = {
 };
 
 const defaultVoiceCatalog = [
+  { locale: 'tr-TR', shortName: 'tr-TR-Elif:MAI-Voice-2', label: 'TR - Elif (MAI-Voice-2)' },
+  { locale: 'tr-TR', shortName: 'tr-TR-Aydin:MAI-Voice-2', label: 'TR - Aydın (MAI-Voice-2)' },
+  { locale: 'en-US', shortName: 'en-US-Harper:MAI-Voice-2', label: 'EN - Harper (MAI-Voice-2)' },
+  { locale: 'en-US', shortName: 'en-US-Ethan:MAI-Voice-2', label: 'EN - Ethan (MAI-Voice-2)' },
   { locale: 'tr-TR', shortName: 'tr-TR-EmelNeural', label: 'TR - Emel Neural' },
   { locale: 'tr-TR', shortName: 'tr-TR-AhmetNeural', label: 'TR - Ahmet Neural' },
   { locale: 'en-US', shortName: 'en-US-AvaMultilingualNeural', label: 'EN - Ava Multilingual' },
@@ -216,6 +220,11 @@ const voiceLiveScope = process.env.AZURE_VOICE_LIVE_SCOPE || cognitiveServicesSc
 // azure_semantic_vad_multilingual); server_vad is rejected. Default to the
 // multilingual semantic VAD so barge-in works across languages (e.g. Turkish).
 const voiceLiveVadType = process.env.AZURE_VOICE_LIVE_VAD || 'azure_semantic_vad_multilingual';
+// Input audio transcription model for the Voice Live session. Defaults to the
+// Azure Speech model; set to 'mai-transcribe-1.5' (preview) to use the
+// Microsoft AI (MAI) speech-to-text model. Requires a region/resource that
+// supports the model; falls back to azure-speech when unset.
+const voiceLiveTranscriptionModel = process.env.AZURE_VOICE_LIVE_TRANSCRIPTION_MODEL || 'azure-speech';
 
 const searchKnowledgeTool = {
   type: 'function',
@@ -295,7 +304,7 @@ function buildVoiceLiveSessionUpdate(language, voice, options = {}) {
     input_audio_format: 'pcm16',
     output_audio_format: 'pcm16',
     input_audio_sampling_rate: 24000,
-    input_audio_transcription: { model: 'azure-speech', language },
+    input_audio_transcription: { model: voiceLiveTranscriptionModel, language },
     input_audio_noise_reduction: { type: 'azure_deep_noise_suppression' },
     input_audio_echo_cancellation: { type: 'server_echo_cancellation' },
     turn_detection: buildTurnDetection(),

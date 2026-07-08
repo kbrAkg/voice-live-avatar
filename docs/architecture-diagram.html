@@ -250,7 +250,7 @@
           <span class="step">5</span>
           <div class="ntitle"><span class="icon i-speech">TTS</span> Seslendirme / Avatar</div>
           <div class="ndesc">Metin sese çevrilir. Avatar modunda WebRTC ile video avatar konuşur.</div>
-          <div class="chips"><span class="chip svc">Neural TTS</span><span class="chip model">tr-TR-EmelNeural</span><span class="chip">Avatar: lisa</span></div>
+          <div class="chips"><span class="chip svc">Neural TTS</span><span class="chip model">tr-TR-Elif:MAI-Voice-2</span><span class="chip">Avatar: lisa</span></div>
         </div>
 
       </div>
@@ -291,7 +291,7 @@
           <span class="step">3</span>
           <div class="ntitle"><span class="icon i-realtime">RT</span> Voice Live Modeli</div>
           <div class="ndesc">Konuşmayı anlar, cevaplar ve sesi tek modelde üretir. Kesinti (barge-in) desteği.</div>
-          <div class="chips"><span class="chip svc">Voice Live API</span><span class="chip model">gpt-realtime-1.5</span><span class="chip">STT: azure-speech</span></div>
+          <div class="chips"><span class="chip svc">Voice Live API</span><span class="chip model">gpt-realtime-1.5</span><span class="chip">STT: mai-transcribe-1.5</span></div>
         </div>
 
         <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h14M13 6l6 6-6 6"/></svg></div>
@@ -309,7 +309,7 @@
           <span class="step">5</span>
           <div class="ntitle"><span class="icon i-speech">OUT</span> Ses / Avatar Çıkışı</div>
           <div class="ndesc">Model cevabı Neural sesle döner; avatar modunda WebRTC video akışı gelir.</div>
-          <div class="chips"><span class="chip svc">Neural TTS (azure-standard)</span><span class="chip">WebRTC Avatar</span></div>
+          <div class="chips"><span class="chip svc">Neural TTS (azure-standard)</span><span class="chip model">MAI-Voice-2</span><span class="chip">WebRTC Avatar</span></div>
         </div>
 
       </div>
@@ -352,8 +352,8 @@
         <tr><td>Chat / Cevap üretimi (LLM)</td><td><code>gpt-4.1</code></td><td>Standart hat + RAG fallback</td><td class="envcol"><code>AZURE_OPENAI_CHAT_DEPLOYMENT</code></td></tr>
         <tr><td>Embedding (vektör arama)</td><td><code>text-embedding-3-small</code></td><td>Her iki hat (RAG) + ingestion</td><td class="envcol"><code>AZURE_OPENAI_EMBEDDING_DEPLOYMENT</code></td></tr>
         <tr><td>Realtime speech-to-speech</td><td><code>gpt-realtime-1.5</code></td><td>Voice Live hattı</td><td class="envcol"><code>AZURE_VOICE_LIVE_MODEL</code></td></tr>
-        <tr><td>Konuşma tanıma (STT)</td><td><code>Azure Speech STT</code> / <code>azure-speech</code></td><td>Standart (SDK) + Voice Live transkript</td><td class="envcol">—</td></tr>
-        <tr><td>Seslendirme (TTS)</td><td><code>tr-TR-EmelNeural</code> vb. Neural sesler</td><td>Her iki hat</td><td class="envcol"><code>AZURE_SPEECH_VOICES_JSON</code></td></tr>
+        <tr><td>Konuşma tanıma (STT)</td><td><code>mai-transcribe-1.5</code> (Voice Live) / <code>Azure Speech STT</code> (standart)</td><td>Standart hat (SDK) + Voice Live giriş transkripti</td><td class="envcol"><code>AZURE_VOICE_LIVE_TRANSCRIPTION_MODEL</code></td></tr>
+        <tr><td>Seslendirme (TTS)</td><td><code>tr-TR-Elif:MAI-Voice-2</code> vb. MAI-Voice-2 (+ Neural yedek)</td><td>Her iki hat</td><td class="envcol"><code>AZURE_SPEECH_VOICES_JSON</code></td></tr>
         <tr><td>Kesinti algılama (VAD)</td><td><code>azure_semantic_vad_multilingual</code></td><td>Voice Live hattı</td><td class="envcol"><code>AZURE_VOICE_LIVE_VAD</code></td></tr>
       </tbody>
     </table>
@@ -400,6 +400,18 @@
           <td><a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-services/">Azure Speech pricing (Voice Live)</a></td>
         </tr>
         <tr>
+          <td><b>MAI-Transcribe-1.5</b> — Voice Live giriş transkripsiyonu (STT)</td>
+          <td>Voice Live <b>“Audio - Standard”</b> uygulanır (Pro): girdi <code>$17</code> / çıktı <code>$31</code> · cached <code>$0.40</code> — 1M token</td>
+          <td><span class="badge-verify">doğrulandı</span></td>
+          <td><a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-services/">Azure Speech pricing — dipnot: “When using MAI-Transcribe, Standard-Audio pricing applies”</a></td>
+        </tr>
+        <tr>
+          <td><b>MAI-Voice-2</b> — Seslendirme (TTS, ön tanımlı nöral ses)</td>
+          <td>Standart hat: prebuilt neural TTS <code>$15</code> / 1M karakter · Voice Live: “Audio - Standard” çıktı <code>$31</code> / 1M token</td>
+          <td><span class="badge-warn">ayrı kalem listelenmemiş · teyit</span></td>
+          <td><a class="srclink" href="https://learn.microsoft.com/en-us/azure/ai-services/speech-service/mai-voices">MAI-Voice model kartı</a> · <a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-services/">Azure Speech pricing</a></td>
+        </tr>
+        <tr>
           <td>Azure Speech · <b>STT</b> (Standard, gerçek zamanlı)</td>
           <td><code>$1.00</code> / ses saati</td>
           <td><span class="badge-verify">doğrulandı</span></td>
@@ -438,6 +450,13 @@
       </tbody>
     </table>
 
+    <p class="hint" style="margin-top:12px;">
+      <b>MAI notu:</b> Bu projede Voice Live girişi <code>mai-transcribe-1.5</code>, çıkışı <code>MAI-Voice-2</code> (azure-standard) kullanır. Bu nedenle native audio ($32/$64) yerine
+      Voice Live <b>“Audio - Standard”</b> tarifesi geçerlidir (Pro: girdi $17 / çıktı $31 · 1M token) — kaynak dipnot: <i>“When using MAI-Transcribe, Standard-Audio pricing applies”</i>.
+      Ayrıca modelin metin (muhakeme) token'ları Voice Live Pro <b>Text</b> tarifesinden faturalandırılır (girdi $4 / çıktı $16 · 1M token).
+      MAI-Voice-2 için Azure fiyat sayfasında <b>ayrı bir kalem yoktur</b>; ön tanımlı nöral ses gibi faturalandığı varsayılmıştır (HD sınıfı olma ihtimali için calculator ile teyit edin).
+    </p>
+
     <h4>2) Aylık tahmini kullanım senaryosu → maliyet</h4>
     <div class="assump">
       <b>Varsayımlar (tahmini üretim yükü — birim fiyatlar gerçek, kullanım hacmi tahminidir):</b><br />
@@ -455,13 +474,14 @@
         <tr><td>gpt-4.1 (Standart hat)</td><td>12,6M girdi + 3,15M çıktı token</td><td class="num">$50</td></tr>
         <tr><td>Embedding (her iki hat)</td><td>~0,5M token</td><td class="num">&lt;$1</td></tr>
         <tr><td>Neural TTS (Standart hat)</td><td>7.000 × 600 = 4,2M karakter</td><td class="num">$63</td></tr>
-        <tr><td>Voice Live — ses girdi</td><td>600 × 4 dk × 700 = 1,68M token</td><td class="num">$54</td></tr>
-        <tr><td>Voice Live — ses çıktı</td><td>1,68M token × $64/1M</td><td class="num">$108</td></tr>
+        <tr><td>Voice Live — ses girdi (MAI-Transcribe → Audio-Standard)</td><td>1,68M token × $17/1M</td><td class="num">$29</td></tr>
+        <tr><td>Voice Live — ses çıktı (MAI-Voice-2 → Audio-Standard)</td><td>1,68M token × $31/1M</td><td class="num">$52</td></tr>
+        <tr><td>Voice Live — metin (LLM muhakeme, Text tarifesi)</td><td>kullanıma bağlı (tahmine dahil değil)</td><td class="num">+?</td></tr>
         <tr><td>Azure AI Search (S1)</td><td>1 arama birimi, sabit</td><td class="num">$245</td></tr>
         <tr><td>Container Apps (barındırma)</td><td>3 app, düşük trafik (tahmini)</td><td class="num">~$30</td></tr>
       </tbody>
       <tfoot>
-        <tr><td colspan="2">Aylık tekrar eden tahmini toplam</td><td class="num">≈ $573 / ay</td></tr>
+        <tr><td colspan="2">Aylık tekrar eden tahmini toplam</td><td class="num">≈ $492 / ay (+ Voice Live metin token'ları)</td></tr>
       </tfoot>
     </table>
     <p class="hint" style="margin-top:12px;">
@@ -477,6 +497,7 @@
       <li>Azure AI Search (Standard S1): <a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/search/">azure.microsoft.com/pricing/details/search</a></li>
       <li>Document Intelligence (Read S0): <a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/ai-document-intelligence/">azure.microsoft.com/pricing/details/ai-document-intelligence</a></li>
       <li>Container Apps (Consumption): <a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/container-apps/">azure.microsoft.com/pricing/details/container-apps</a></li>
+      <li>MAI-Voice / MAI-Transcribe (model & fiyat notları): <a class="srclink" href="https://learn.microsoft.com/en-us/azure/ai-services/speech-service/mai-voices">learn.microsoft.com/…/mai-voices</a> · <a class="srclink" href="https://learn.microsoft.com/en-us/azure/ai-services/speech-service/mai-transcribe">learn.microsoft.com/…/mai-transcribe</a></li>
     </ul>
   </section>
 

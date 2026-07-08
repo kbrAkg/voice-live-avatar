@@ -24,6 +24,10 @@ const elements = {
 
 let backendConfig = null;
 let voiceCatalog = [
+  { locale: 'tr-TR', shortName: 'tr-TR-Elif:MAI-Voice-2', label: 'TR - Elif (MAI-Voice-2)' },
+  { locale: 'tr-TR', shortName: 'tr-TR-Aydin:MAI-Voice-2', label: 'TR - Aydın (MAI-Voice-2)' },
+  { locale: 'en-US', shortName: 'en-US-Harper:MAI-Voice-2', label: 'EN - Harper (MAI-Voice-2)' },
+  { locale: 'en-US', shortName: 'en-US-Ethan:MAI-Voice-2', label: 'EN - Ethan (MAI-Voice-2)' },
   { locale: 'tr-TR', shortName: 'tr-TR-EmelNeural', label: 'TR - Emel Neural' },
   { locale: 'tr-TR', shortName: 'tr-TR-AhmetNeural', label: 'TR - Ahmet Neural' },
   { locale: 'en-US', shortName: 'en-US-AvaMultilingualNeural', label: 'EN - Ava Multilingual' },
