@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Azure Developer CLI
+.azure/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output
+dist/
+build/
+**/dist/
+**/build/
+
+# Test / coverage
+coverage/
+.nyc_output/
+
+# Compiled Bicep (ARM JSON emitted from *.bicep)
+infra/**/*.json
+!infra/**/main.parameters.json
+
+# Ingestion state
+scripts/knowledge-ingestion/.ingestion-state.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json

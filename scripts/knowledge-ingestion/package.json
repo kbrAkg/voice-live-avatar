@@ -1,0 +1,21 @@
+{
+  "name": "knowledge-ingestion",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "upload-samples": "node index.js --upload-samples",
+    "create-index": "node index.js --create-index",
+    "sync": "node index.js --process-documents",
+    "watch": "node index.js --watch"
+  },
+  "dependencies": {
+    "@azure/identity": "^4.4.1",
+    "@azure/search-documents": "^12.1.0",
+    "@azure/storage-blob": "^12.26.0",
+    "dotenv": "^16.4.5",
+    "mime-types": "^2.1.35",
+    "openai": "^4.104.0"
+  }
+}

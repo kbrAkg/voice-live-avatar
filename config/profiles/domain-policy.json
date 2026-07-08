@@ -1,0 +1,16 @@
+{
+  "domains": {
+    "education": {
+      "allowedTopics": ["curriculum", "learning-plan", "exam-practice"],
+      "disallowedTopics": ["medical-diagnosis", "legal-advice"]
+    },
+    "health": {
+      "allowedTopics": ["wellness-guidance", "non-diagnostic-info"],
+      "disallowedTopics": ["prescription", "diagnosis"]
+    },
+    "sales": {
+      "allowedTopics": ["product-information", "pricing-summary", "next-best-action"],
+      "disallowedTopics": ["contract-approval", "regulatory-advice"]
+    }
+  }
+}

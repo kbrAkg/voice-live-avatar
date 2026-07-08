@@ -1,0 +1,42 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "dev"
+    },
+    "location": {
+      "value": "eastus2"
+    },
+    "baseName": {
+      "value": "assistantapp"
+    },
+    "assistantDomain": {
+      "value": "education"
+    },
+    "assistantProfile": {
+      "value": "default"
+    },
+    "frontendImage": {
+      "value": ""
+    },
+    "backendImage": {
+      "value": ""
+    },
+    "mcpImage": {
+      "value": ""
+    },
+    "searchSkuName": {
+      "value": "standard"
+    },
+    "foundryEndpoint": {
+      "value": "${AZURE_OPENAI_ENDPOINT}"
+    },
+    "foundryChatDeployment": {
+      "value": "${AZURE_OPENAI_CHAT_DEPLOYMENT}"
+    },
+    "foundryEmbeddingDeployment": {
+      "value": "${AZURE_OPENAI_EMBEDDING_DEPLOYMENT}"
+    }
+  }
+}

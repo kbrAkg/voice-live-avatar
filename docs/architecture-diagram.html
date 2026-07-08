@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Domain-Adaptive Voice Live Avatar — Mimari & Akış</title>
+<style>
+  :root {
+    --azure-blue: #0078D4;
+    --azure-blue-dark: #005A9E;
+    --azure-cyan: #50E6FF;
+    --azure-cyan-dark: #0099BC;
+    --ink: #1B1A19;
+    --muted: #605E5C;
+    --line: #C8C6C4;
+    --bg: #F3F2F1;
+    --card: #FFFFFF;
+    --green: #107C10;
+    --purple: #8661C5;
+    --orange: #D83B01;
+    --teal: #038387;
+    --gold: #C19C00;
+    --shadow: 0 1.6px 3.6px rgba(0,0,0,.13), 0 .3px .9px rgba(0,0,0,.11);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "Segoe UI Web", system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 32px 28px 56px;
+  }
+  header.hero {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 6px;
+  }
+  .logo {
+    width: 34px; height: 34px; flex: 0 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
+  }
+  .logo span { border-radius: 2px; }
+  .logo span:nth-child(1){ background:#F25022; }
+  .logo span:nth-child(2){ background:#7FBA00; }
+  .logo span:nth-child(3){ background:#00A4EF; }
+  .logo span:nth-child(4){ background:#FFB900; }
+  h1 { font-size: 26px; font-weight: 600; margin: 0; letter-spacing: -.2px; }
+  .subtitle { color: var(--muted); font-size: 14.5px; margin: 4px 0 26px 50px; }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 18px 26px;
+    margin: 0 0 28px 0; padding: 14px 18px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    box-shadow: var(--shadow); font-size: 13px;
+  }
+  .legend .item { display:flex; align-items:center; gap:8px; color: var(--muted); }
+  .swatch { width: 14px; height: 14px; border-radius: 4px; flex:0 0 auto; }
+
+  .lane {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+  .lane-head {
+    display:flex; align-items:center; gap:12px;
+    padding: 16px 22px;
+    color: #fff;
+  }
+  .lane-head.standard { background: linear-gradient(90deg, var(--azure-blue), var(--azure-blue-dark)); }
+  .lane-head.live { background: linear-gradient(90deg, var(--teal), var(--azure-cyan-dark)); }
+  .lane-head .badge {
+    font-size: 12px; font-weight:600; background: rgba(255,255,255,.22);
+    padding: 3px 10px; border-radius: 20px; letter-spacing:.3px;
+  }
+  .lane-head h2 { margin:0; font-size: 18px; font-weight: 600; }
+  .lane-head p { margin: 2px 0 0; font-size: 12.5px; opacity:.92; }
+  .lane-body { padding: 26px 22px 30px; }
+
+  .flow {
+    display: flex; align-items: stretch; gap: 0;
+    flex-wrap: nowrap; overflow-x: auto;
+    /* overflow-x:auto also clips overflow-y; add top padding so the negatively
+       positioned step badges are not cut off. */
+    padding-top: 16px; padding-bottom: 6px;
+  }
+  .node {
+    flex: 1 1 0; min-width: 178px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 15px 15px;
+    background: #FafAfA;
+    position: relative;
+    display: flex; flex-direction: column; gap: 9px;
+  }
+  .node .step {
+    position:absolute; top:-12px; left:13px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--ink); color:#fff; font-size: 12px; font-weight:700;
+    display:grid; place-items:center;
+    box-shadow: 0 0 0 3px var(--card);
+  }
+  .node .ntitle { font-size: 13.5px; font-weight: 600; display:flex; align-items:flex-start; gap:8px; line-height:1.35; }
+  .node .ntitle .icon { margin-top: 1px; }
+  .node .ndesc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .icon {
+    width: 22px; height: 22px; border-radius: 6px; flex:0 0 auto;
+    display:grid; place-items:center; color:#fff; font-size: 12px; font-weight:700;
+  }
+  .i-front { background: #5C2D91; }
+  .i-back  { background: var(--azure-blue); }
+  .i-speech{ background: var(--orange); }
+  .i-search{ background: var(--teal); }
+  .i-openai{ background: var(--green); }
+  .i-realtime{ background: var(--purple); }
+  .i-doc { background: var(--gold); }
+
+  .arrow {
+    flex: 0 0 34px; display:grid; place-items:center; color: var(--azure-blue);
+  }
+  .arrow svg { width: 26px; height: 26px; }
+  .lane-head.live ~ .lane-body .arrow { color: var(--teal); }
+
+  .chips { display:flex; flex-wrap:wrap; gap: 6px; margin-top: auto; padding-top: 6px; }
+  .chip {
+    font-size: 11px; padding: 3px 9px; border-radius: 20px;
+    background: #EFF6FC; color: var(--azure-blue-dark);
+    border: 1px solid #C7E0F4; font-weight: 600; white-space: nowrap;
+    line-height: 1.5;
+  }
+  .chip.model { background:#F1FAF1; color:#0B6A0B; border-color:#C6EFC6; }
+  .chip.svc   { background:#FDF3F0; color:#8A2C06; border-color:#F5C9B8; }
+  .chip.live  { background:#EAF9FB; color:#026670; border-color:#B5EAF0; }
+
+  .models-band {
+    margin-top: 30px;
+    background: var(--card); border:1px solid var(--line); border-radius:14px;
+    box-shadow: var(--shadow); padding: 22px 24px 26px;
+  }
+  .models-band h3 { margin:0 0 4px; font-size:17px; font-weight:600; }
+  .models-band .hint { color: var(--muted); font-size: 12.5px; margin: 0 0 18px; }
+  table { width:100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align:left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight:600; font-size:12px; text-transform: uppercase; letter-spacing:.4px; }
+  td code {
+    background:#F3F2F1; padding: 2px 7px; border-radius:5px; font-size:12.5px;
+    font-family: "Cascadia Code", Consolas, monospace; color: var(--azure-blue-dark);
+  }
+  td.envcol code { color: var(--purple); }
+  .pricing h4 { margin: 24px 0 8px; font-size: 14px; font-weight:600; color: var(--azure-blue-dark); }
+  .pricing h4:first-of-type { margin-top: 8px; }
+  .assump { background:#EFF6FC; border:1px solid #C7E0F4; border-radius:8px; padding:12px 14px; font-size:12.5px; color:#243B53; line-height:1.7; margin-bottom:14px; }
+  .assump b { color: var(--azure-blue-dark); }
+  table.cost td.num, table.cost th.num { text-align:right; white-space:nowrap; }
+  table.cost tfoot td { font-weight:700; border-top:2px solid var(--ink); border-bottom:none; font-size:14px; background:#F1FAF1; }
+  .srclink { color: var(--azure-blue); text-decoration:none; font-weight:600; }
+  .srclink:hover { text-decoration:underline; }
+  .src-list { font-size:12px; color:var(--muted); line-height:1.9; margin:8px 0 0; padding-left:18px; }
+  .badge-verify { display:inline-block; background:#F1FAF1; color:#0B6A0B; border:1px solid #C6EFC6; font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:20px; white-space:nowrap; }
+  .badge-warn { display:inline-block; background:#FDF6E3; color:#8A6D00; border:1px solid #F0E0A0; font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:20px; white-space:nowrap; }
+  .foot { margin-top: 26px; color: var(--muted); font-size: 12px; text-align:center; line-height:1.6; }
+  .foot code { background:#EDEBE9; padding:1px 6px; border-radius:4px; }
+  @media print { body{background:#fff;} .page{max-width:none;} .lane,.models-band,.legend{box-shadow:none;} }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="hero">
+    <div class="logo"><span></span><span></span><span></span><span></span></div>
+    <div>
+      <h1>Domain-Adaptive Voice Live Avatar — Mimari & Servis Akışı</h1>
+    </div>
+  </header>
+  <p class="subtitle">Keyless (Managed Identity) · Azure Container Apps · İki ses hattı: Standart Speech SDK ve gerçek zamanlı Voice Live API</p>
+
+  <div class="legend">
+    <div class="item"><span class="swatch i-front"></span> Frontend (assistant-app)</div>
+    <div class="item"><span class="swatch i-back"></span> Backend (orchestration-api)</div>
+    <div class="item"><span class="swatch i-search"></span> MCP / RAG servisi</div>
+    <div class="item"><span class="swatch i-speech"></span> Azure Speech</div>
+    <div class="item"><span class="swatch i-openai"></span> Azure AI Foundry</div>
+    <div class="item"><span class="swatch i-realtime"></span> Voice Live (realtime)</div>
+  </div>
+
+  <div class="legend" style="margin-top:-14px;">
+    <span style="font-weight:600;color:var(--ink);font-size:12.5px;">Çip renkleri:</span>
+    <div class="item"><span class="chip model">AI modeli</span> LLM / embedding / realtime</div>
+    <div class="item"><span class="chip svc">Azure servisi</span> yönetilen bulut servisi</div>
+    <div class="item"><span class="chip">Altyapı / protokol</span> SDK · WebSocket · WebRTC</div>
+  </div>
+
+  <!-- ================= STANDART HAT ================= -->
+  <section class="lane">
+    <div class="lane-head standard">
+      <span class="badge">HAT 1</span>
+      <div>
+        <h2>Standart Hat — Azure Speech SDK (STT → RAG → TTS)</h2>
+        <p>Üç ayrı senkron adım. "Dinle" + "Sor &amp; Konuş" butonlarıyla tetiklenir.</p>
+      </div>
+    </div>
+    <div class="lane-body">
+      <div class="flow">
+
+        <div class="node">
+          <span class="step">1</span>
+          <div class="ntitle"><span class="icon i-front">UI</span> Tarayıcı / Mikrofon</div>
+          <div class="ndesc">Kullanıcı konuşur. Frontend backend'den kısa ömürlü Speech token'ı alır.</div>
+          <div class="chips"><span class="chip">Speech SDK</span></div>
+        </div>
+
+        <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h14M13 6l6 6-6 6"/></svg></div>
+
+        <div class="node">
+          <span class="step">2</span>
+          <div class="ntitle"><span class="icon i-speech">STT</span> Speech-to-Text</div>
+          <div class="ndesc">SpeechRecognizer sesi metne çevirir (seçili dil, ör. tr-TR).</div>
+          <div class="chips"><span class="chip svc">Azure Speech STT</span><span class="chip model">Neural STT</span></div>
+        </div>
+
+        <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h14M13 6l6 6-6 6"/></svg></div>
+
+        <div class="node">
+          <span class="step">3</span>
+          <div class="ntitle"><span class="icon i-search">RAG</span> Bilgi Tabanı Arama</div>
+          <div class="ndesc">MCP servisi soruyu vektöre çevirir, Azure AI Search'te ilgili içeriği bulur.</div>
+          <div class="chips"><span class="chip svc">Azure AI Search</span><span class="chip model">text-embedding-3-small</span></div>
+        </div>
+
+        <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h14M13 6l6 6-6 6"/></svg></div>
+
+        <div class="node">
+          <span class="step">4</span>
+          <div class="ntitle"><span class="icon i-openai">LLM</span> Cevap Üretimi</div>
+          <div class="ndesc">Bulunan içerikten (grounding) kısa ve kaynaklı cevap yazılır.</div>
+          <div class="chips"><span class="chip svc">Azure AI Foundry</span><span class="chip model">gpt-4.1</span></div>
+        </div>
+
+        <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h14M13 6l6 6-6 6"/></svg></div>
+
+        <div class="node">
+          <span class="step">5</span>
+          <div class="ntitle"><span class="icon i-speech">TTS</span> Seslendirme / Avatar</div>
+          <div class="ndesc">Metin sese çevrilir. Avatar modunda WebRTC ile video avatar konuşur.</div>
+          <div class="chips"><span class="chip svc">Neural TTS</span><span class="chip model">tr-TR-EmelNeural</span><span class="chip">Avatar: lisa</span></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= VOICE LIVE HAT ================= -->
+  <section class="lane">
+    <div class="lane-head live">
+      <span class="badge">HAT 2</span>
+      <div>
+        <h2>Voice Live Hattı — Gerçek Zamanlı Speech-to-Speech</h2>
+        <p>Tek realtime model; kesintisiz. Backend WebSocket proxy olarak çalışır (VoiceRAG deseni).</p>
+      </div>
+    </div>
+    <div class="lane-body">
+      <div class="flow">
+
+        <div class="node">
+          <span class="step">1</span>
+          <div class="ntitle"><span class="icon i-front">UI</span> Tarayıcı (PCM16)</div>
+          <div class="ndesc">Mikrofon sesi PCM16 olarak WebSocket üzerinden backend'e canlı akıtılır.</div>
+          <div class="chips"><span class="chip live">WebSocket</span></div>
+        </div>
+
+        <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h14M13 6l6 6-6 6"/></svg></div>
+
+        <div class="node">
+          <span class="step">2</span>
+          <div class="ntitle"><span class="icon i-back">PXY</span> Backend Proxy</div>
+          <div class="ndesc">Managed Identity ile kimlik doğrular, session config enjekte eder. Anahtar tarayıcıya gitmez.</div>
+          <div class="chips"><span class="chip live">azure_semantic_vad_multilingual</span></div>
+        </div>
+
+        <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h14M13 6l6 6-6 6"/></svg></div>
+
+        <div class="node">
+          <span class="step">3</span>
+          <div class="ntitle"><span class="icon i-realtime">RT</span> Voice Live Modeli</div>
+          <div class="ndesc">Konuşmayı anlar, cevaplar ve sesi tek modelde üretir. Kesinti (barge-in) desteği.</div>
+          <div class="chips"><span class="chip svc">Voice Live API</span><span class="chip model">gpt-realtime-1.5</span><span class="chip">STT: azure-speech</span></div>
+        </div>
+
+        <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h14M13 6l6 6-6 6"/></svg></div>
+
+        <div class="node">
+          <span class="step">4</span>
+          <div class="ntitle"><span class="icon i-search">FN</span> search_knowledge (Function Call)</div>
+          <div class="ndesc">Model gerektiğinde fonksiyon çağırır → backend RAG servisini çalıştırır → sonuç modele döner.</div>
+          <div class="chips"><span class="chip svc">Azure AI Search</span><span class="chip model">text-embedding-3-small</span></div>
+        </div>
+
+        <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h14M13 6l6 6-6 6"/></svg></div>
+
+        <div class="node">
+          <span class="step">5</span>
+          <div class="ntitle"><span class="icon i-speech">OUT</span> Ses / Avatar Çıkışı</div>
+          <div class="ndesc">Model cevabı Neural sesle döner; avatar modunda WebRTC video akışı gelir.</div>
+          <div class="chips"><span class="chip svc">Neural TTS (azure-standard)</span><span class="chip">WebRTC Avatar</span></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= KNOWLEDGE INGESTION ================= -->
+  <section class="lane">
+    <div class="lane-head" style="background:linear-gradient(90deg,var(--gold),#9c7d00);">
+      <span class="badge">OFFLINE</span>
+      <div>
+        <h2>Bilgi Yükleme (Knowledge Ingestion) Boru Hattı</h2>
+        <p>Belgeler önceden işlenip aranabilir index'e dönüştürülür.</p>
+      </div>
+    </div>
+    <div class="lane-body">
+      <div class="flow">
+        <div class="node"><span class="step">1</span><div class="ntitle"><span class="icon i-back">BLB</span> Azure Storage</div><div class="ndesc">Kaynak belgeler (blob).</div><div class="chips"><span class="chip svc">Blob Storage</span></div></div>
+        <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h14M13 6l6 6-6 6"/></svg></div>
+        <div class="node"><span class="step">2</span><div class="ntitle"><span class="icon i-doc">DI</span> Document Intelligence</div><div class="ndesc">Metin çıkarma / ayrıştırma.</div><div class="chips"><span class="chip svc">Document Intelligence</span></div></div>
+        <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h14M13 6l6 6-6 6"/></svg></div>
+        <div class="node"><span class="step">3</span><div class="ntitle"><span class="icon i-back">CHK</span> Chunk</div><div class="ndesc">Parçalara böl.</div></div>
+        <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h14M13 6l6 6-6 6"/></svg></div>
+        <div class="node"><span class="step">4</span><div class="ntitle"><span class="icon i-openai">EMB</span> Embedding</div><div class="ndesc">Vektör üretimi.</div><div class="chips"><span class="chip model">text-embedding-3-small</span></div></div>
+        <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h14M13 6l6 6-6 6"/></svg></div>
+        <div class="node"><span class="step">5</span><div class="ntitle"><span class="icon i-search">IDX</span> Search Index Upsert</div><div class="ndesc">Aranabilir index'e yaz.</div><div class="chips"><span class="chip svc">Azure AI Search</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MODELLER TABLOSU ================= -->
+  <section class="models-band">
+    <h3>Kullanılan Modeller ve Değiştirilebilir Ayarlar</h3>
+    <p class="hint">Tüm modeller <code>.env</code> dosyasından değiştirilebilir (kod değişikliği gerekmez). Deployment adının Azure kaynağında var olması gerekir.</p>
+    <table>
+      <thead>
+        <tr><th>Rol</th><th>Model</th><th>Kullanıldığı Hat</th><th class="envcol">.env Değişkeni</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Chat / Cevap üretimi (LLM)</td><td><code>gpt-4.1</code></td><td>Standart hat + RAG fallback</td><td class="envcol"><code>AZURE_OPENAI_CHAT_DEPLOYMENT</code></td></tr>
+        <tr><td>Embedding (vektör arama)</td><td><code>text-embedding-3-small</code></td><td>Her iki hat (RAG) + ingestion</td><td class="envcol"><code>AZURE_OPENAI_EMBEDDING_DEPLOYMENT</code></td></tr>
+        <tr><td>Realtime speech-to-speech</td><td><code>gpt-realtime-1.5</code></td><td>Voice Live hattı</td><td class="envcol"><code>AZURE_VOICE_LIVE_MODEL</code></td></tr>
+        <tr><td>Konuşma tanıma (STT)</td><td><code>Azure Speech STT</code> / <code>azure-speech</code></td><td>Standart (SDK) + Voice Live transkript</td><td class="envcol">—</td></tr>
+        <tr><td>Seslendirme (TTS)</td><td><code>tr-TR-EmelNeural</code> vb. Neural sesler</td><td>Her iki hat</td><td class="envcol"><code>AZURE_SPEECH_VOICES_JSON</code></td></tr>
+        <tr><td>Kesinti algılama (VAD)</td><td><code>azure_semantic_vad_multilingual</code></td><td>Voice Live hattı</td><td class="envcol"><code>AZURE_VOICE_LIVE_VAD</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ================= FİYATLANDIRMA & TAHMİNİ MALİYET ================= -->
+  <section class="models-band pricing">
+    <h3>Fiyatlandırma & Tahmini Üretim Maliyeti</h3>
+    <p class="hint">
+      Tüm birim fiyatlar Azure resmi fiyat sayfalarından <b>doğrulandı: 8 Temmuz 2026</b> ·
+      Temel: <b>US / Global Standard, USD</b> (dağıtım bölgesi <code>eastus2</code>; bazı kalemler bölgeye göre değişebilir) ·
+      Fiyatlar Microsoft tarafından değiştirilebilir — üretim öncesi
+      <a class="srclink" href="https://azure.microsoft.com/en-us/pricing/calculator/">Azure Pricing Calculator</a> ile teyit edin.
+    </p>
+
+    <h4>1) Birim fiyatlar — Azure resmi fiyat sayfalarından doğrulanmıştır</h4>
+    <table>
+      <thead>
+        <tr><th>Servis / Model</th><th>Birim fiyat</th><th>Durum</th><th>Kaynak</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Foundry · <b>gpt-4.1</b> (Global Standard)</td>
+          <td>Girdi <code>$2.00</code> / Çıktı <code>$8.00</code> — 1M token</td>
+          <td><span class="badge-verify">doğrulandı</span></td>
+          <td><a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/">Azure OpenAI pricing</a></td>
+        </tr>
+        <tr>
+          <td>Foundry · <b>text-embedding-3-small</b></td>
+          <td><code>$0.022</code> / 1M token ($0.000022 / 1K)</td>
+          <td><span class="badge-verify">doğrulandı</span></td>
+          <td><a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/">Azure OpenAI pricing</a></td>
+        </tr>
+        <tr>
+          <td>Foundry · <b>gpt-realtime-1.5</b> (ses)</td>
+          <td>Ses girdi <code>$32</code> / ses çıktı <code>$64</code> — 1M token · metin girdi $4 / çıktı $16</td>
+          <td><span class="badge-verify">doğrulandı</span></td>
+          <td><a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/">Azure OpenAI pricing (Audio Models)</a></td>
+        </tr>
+        <tr>
+          <td><b>Voice Live API</b> — Pro katman (native audio, speech-to-speech)</td>
+          <td>Ses girdi <code>$32</code> / ses çıktı <code>$64</code> — 1M token (gpt-realtime sınıfı)</td>
+          <td><span class="badge-verify">doğrulandı</span></td>
+          <td><a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-services/">Azure Speech pricing (Voice Live)</a></td>
+        </tr>
+        <tr>
+          <td>Azure Speech · <b>STT</b> (Standard, gerçek zamanlı)</td>
+          <td><code>$1.00</code> / ses saati</td>
+          <td><span class="badge-verify">doğrulandı</span></td>
+          <td><a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-services/">Azure Speech pricing</a></td>
+        </tr>
+        <tr>
+          <td>Azure Speech · <b>Neural TTS</b></td>
+          <td><code>$15</code> / 1M karakter</td>
+          <td><span class="badge-verify">doğrulandı</span></td>
+          <td><a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-services/">Azure Speech pricing</a></td>
+        </tr>
+        <tr>
+          <td>Azure Speech · <b>Video Avatar</b> (gerçek zamanlı, interaktif)</td>
+          <td>Bölgeye bağlı — resmi sayfada seçili bölge için listelenmedi</td>
+          <td><span class="badge-warn">bölge · teyit edilmeli</span></td>
+          <td><a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-services/">Azure Speech pricing (TTS Avatar)</a></td>
+        </tr>
+        <tr>
+          <td><b>Azure AI Search</b> — Standard (S1), projedeki SKU</td>
+          <td><code>$245.28</code> / ay (1 arama birimi)</td>
+          <td><span class="badge-verify">doğrulandı</span></td>
+          <td><a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/search/">Azure AI Search pricing</a></td>
+        </tr>
+        <tr>
+          <td><b>Document Intelligence</b> — Read (S0)</td>
+          <td><code>$1.50</code> / 1.000 sayfa (bir kerelik / ingest başına)</td>
+          <td><span class="badge-verify">doğrulandı</span></td>
+          <td><a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/ai-document-intelligence/">Document Intelligence pricing</a></td>
+        </tr>
+        <tr>
+          <td><b>Container Apps</b> — Consumption (barındırma)</td>
+          <td>vCPU <code>$0.000024</code>/sn · Bellek <code>$0.000003</code>/GiB-sn · İstek <code>$0.40</code>/M (ilk 2M ücretsiz)</td>
+          <td><span class="badge-verify">doğrulandı</span></td>
+          <td><a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/container-apps/">Container Apps pricing</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>2) Aylık tahmini kullanım senaryosu → maliyet</h4>
+    <div class="assump">
+      <b>Varsayımlar (tahmini üretim yükü — birim fiyatlar gerçek, kullanım hacmi tahminidir):</b><br />
+      • Aylık <b>2.000 oturum</b> · dağılım: %70 Standart hat (1.400 oturum), %30 Voice Live hattı (600 oturum)<br />
+      • <b>Standart oturum:</b> 5 soru-cevap turu · tur başına ~12 sn STT, ~1.800 girdi + ~450 çıktı token (gpt-4.1), ~600 karakter TTS<br />
+      • <b>Voice Live oturum:</b> ~4 dk kesintisiz sesli · ~700 ses token/dk her yön (yaklaşık — en belirsiz varsayım; konuşma yoğunluğuna göre değişir)<br />
+      • Altyapı: AI Search S1 sabit; 3 Container App düşük trafikte çoğunlukla scale-to-zero + minimum replica
+    </div>
+    <table class="cost">
+      <thead>
+        <tr><th>Kalem</th><th>Tahmini kullanım</th><th class="num">Aylık maliyet</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>STT (Standart hat)</td><td>7.000 tur × 12 sn = 23,3 saat</td><td class="num">$23</td></tr>
+        <tr><td>gpt-4.1 (Standart hat)</td><td>12,6M girdi + 3,15M çıktı token</td><td class="num">$50</td></tr>
+        <tr><td>Embedding (her iki hat)</td><td>~0,5M token</td><td class="num">&lt;$1</td></tr>
+        <tr><td>Neural TTS (Standart hat)</td><td>7.000 × 600 = 4,2M karakter</td><td class="num">$63</td></tr>
+        <tr><td>Voice Live — ses girdi</td><td>600 × 4 dk × 700 = 1,68M token</td><td class="num">$54</td></tr>
+        <tr><td>Voice Live — ses çıktı</td><td>1,68M token × $64/1M</td><td class="num">$108</td></tr>
+        <tr><td>Azure AI Search (S1)</td><td>1 arama birimi, sabit</td><td class="num">$245</td></tr>
+        <tr><td>Container Apps (barındırma)</td><td>3 app, düşük trafik (tahmini)</td><td class="num">~$30</td></tr>
+      </tbody>
+      <tfoot>
+        <tr><td colspan="2">Aylık tekrar eden tahmini toplam</td><td class="num">≈ $573 / ay</td></tr>
+      </tfoot>
+    </table>
+    <p class="hint" style="margin-top:12px;">
+      <b>Bir kerelik / periyodik:</b> belge yükleme (Document Intelligence) — örn. 5.000 sayfa × $1,50/1.000 = <b>$7,50</b> (ingest başına). ·
+      <b>Ayrıca hesaplanmalı (kullanıma bağlı, bu tahmine dahil değil):</b> Log Analytics / App Insights veri alımı ve Azure Storage.
+      Video Avatar kullanılırsa ek TTS-Avatar ücreti eklenir (yukarıda bölgeye bağlı, teyit edilmeli).
+    </p>
+
+    <h4>Kaynaklar (birim fiyatların alındığı resmi sayfalar)</h4>
+    <ul class="src-list">
+      <li>Foundry / Azure OpenAI (gpt-4.1, gpt-realtime-1.5, text-embedding-3-small): <a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/">azure.microsoft.com/pricing/details/cognitive-services/openai-service</a></li>
+      <li>Azure Speech (STT, Neural TTS, Voice Live, Avatar): <a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/cognitive-services/speech-services/">azure.microsoft.com/pricing/details/cognitive-services/speech-services</a></li>
+      <li>Azure AI Search (Standard S1): <a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/search/">azure.microsoft.com/pricing/details/search</a></li>
+      <li>Document Intelligence (Read S0): <a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/ai-document-intelligence/">azure.microsoft.com/pricing/details/ai-document-intelligence</a></li>
+      <li>Container Apps (Consumption): <a class="srclink" href="https://azure.microsoft.com/en-us/pricing/details/container-apps/">azure.microsoft.com/pricing/details/container-apps</a></li>
+    </ul>
+  </section>
+
+  <p class="foot">
+    Barındırma: <b>Azure Container Apps</b> · Kimlik: <b>User-Assigned Managed Identity</b> (keyless, anahtarsız) · Gözlemlenebilirlik: <b>Log Analytics + App Insights</b><br />
+    Not: <code>AZURE_OPENAI_EMBEDDING_DEPLOYMENT</code> değiştirilirse Azure Search index'i aynı boyutta yeniden oluşturulmalıdır (re-ingestion).
+  </p>
+
+</div>
+</body>
+</html>

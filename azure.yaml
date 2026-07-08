@@ -1,0 +1,32 @@
+name: domain-adaptive-voice-live-avatar-poc
+metadata:
+  template: domain-adaptive-voice-live-avatar-poc@0.1.0
+infra:
+  provider: bicep
+  path: infra
+services:
+  frontend:
+    project: ./frontend
+    host: containerapp
+    language: js
+    docker:
+      path: ./Dockerfile
+      context: .
+  backend:
+    project: ./backend
+    host: containerapp
+    language: js
+    docker:
+      path: ./Dockerfile
+      context: .
+  mcp-server:
+    project: ./mcp-server
+    host: containerapp
+    language: js
+    docker:
+      path: ./Dockerfile
+      context: .
+hooks:
+  postprovision:
+    shell: pwsh
+    run: ./scripts/postprovision.ps1

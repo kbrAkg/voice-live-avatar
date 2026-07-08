@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Domain-Adaptive Voice Live Avatar</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <!-- ═══════════════ TOP BAR ═══════════════ -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="ms-logo" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+        </span>
+        <div class="brand-text">
+          <strong>Voice Live Avatar</strong>
+          <small>Domain-Adaptive Assistant</small>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" id="settingsToggle" aria-expanded="false" title="Ayarlar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+        <button class="icon-btn" id="logToggle" aria-expanded="false" title="Loglar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ═══════════════ SETTINGS PANEL (collapsible) ═══════════════ -->
+    <div class="settings-drawer" id="settingsPanel">
+      <div class="settings-grid">
+        <div class="field-row">
+          <label for="language">Dil</label>
+          <select id="language">
+            <option value="tr-TR">Türkçe</option>
+            <option value="en-US">English</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <label for="voiceApi">Voice API</label>
+          <select id="voiceApi">
+            <option value="standard">Standard (STT → RAG → TTS)</option>
+            <option value="realtime">Realtime Voice Live</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <label for="mode">Mode</label>
+          <select id="mode"></select>
+        </div>
+        <div class="field-row">
+          <label for="voice">Ses</label>
+          <select id="voice"></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ MAIN STAGE ═══════════════ -->
+    <main class="layout">
+      <section class="stage-card">
+        <!-- Avatar + Mic in the same area -->
+        <div class="stage-wrap">
+          <video id="avatarVideo" autoplay playsinline></video>
+          <audio id="avatarAudio" autoplay></audio>
+
+          <div id="stageHint" class="stage-hint">
+            <span class="stage-hint-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
+              </svg>
+            </span>
+            <p>Asistanınız hazır.<br>Mikrofona basarak konuşmaya başlayın.</p>
+          </div>
+
+          <!-- Mic overlay bar, positioned over the avatar area -->
+          <div class="mic-overlay">
+            <div id="micStatus" class="mic-status">Başlamak için mikrofona bas</div>
+            <div class="mic-controls">
+              <button id="micButton" class="mic-btn" title="Konuş">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="2" width="6" height="12" rx="3"/>
+                  <path d="M5 10a7 7 0 0 0 14 0"/>
+                  <line x1="12" y1="19" x2="12" y2="22"/>
+                  <line x1="8" y1="22" x2="16" y2="22"/>
+                </svg>
+              </button>
+              <button id="stopButton" class="stop-link" title="Oturumu bitir">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conversation bubbles -->
+        <div class="convo-area">
+          <div id="question-display" class="question-bubble" hidden></div>
+          <div id="lastAnswer" class="answer-bubble" hidden></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ═══════════════ LOG DRAWER (right side) ═══════════════ -->
+    <div class="log-scrim" id="logScrim"></div>
+    <aside class="log-drawer" id="logPanel" aria-hidden="true">
+      <div class="log-drawer-head">
+        <div class="log-drawer-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <span>Loglar</span>
+        </div>
+        <button class="icon-btn subtle" id="logClose" title="Kapat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="statusLog" class="log"></div>
+    </aside>
+
+    <!-- Hidden elements for backward compat -->
+    <textarea id="question" style="display:none"></textarea>
+    <button id="startButton" style="display:none"></button>
+    <button id="listenButton" style="display:none"></button>
+    <button id="askButton" style="display:none"></button>
+
+    <script src="/runtime-config.js"></script>
+    <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

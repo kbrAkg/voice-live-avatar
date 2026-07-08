@@ -1,0 +1,23 @@
+{
+  "defaultProfile": "teacher-default",
+  "supportedProfiles": [
+    {
+      "name": "teacher-default",
+      "domain": "education",
+      "tone": "patient-clear-structured",
+      "safetyPolicy": "safe-response-basic"
+    },
+    {
+      "name": "health-helper",
+      "domain": "health",
+      "tone": "empathetic-concise",
+      "safetyPolicy": "safe-response-health"
+    },
+    {
+      "name": "sales-advisor",
+      "domain": "sales",
+      "tone": "goal-oriented-trustworthy",
+      "safetyPolicy": "safe-response-sales"
+    }
+  ]
+}

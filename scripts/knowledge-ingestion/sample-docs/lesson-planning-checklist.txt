@@ -1,0 +1,6 @@
+Ders planlama kontrol listesi:
+1. Ogrenme hedefi tanimla.
+2. On bilgi seviyesini belirle.
+3. Ornek ve alistirma dengesi kur.
+4. Ders sonunda cikis bileti kullan.
+5. Sonraki ders icin iyilestirme notu al.
