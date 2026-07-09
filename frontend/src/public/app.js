@@ -184,7 +184,11 @@ function setupModes() {
       elements.mode.appendChild(option);
     });
 
-  if (!elements.mode.value) {
+  // Default to the video avatar experience when it is enabled; otherwise fall
+  // back to voice-only.
+  if (enabledModes.videoAvatar) {
+    elements.mode.value = 'videoAvatar';
+  } else if (!elements.mode.value) {
     elements.mode.value = 'voiceOnly';
   }
 }

@@ -121,24 +121,18 @@ function sleep(ms) {
 async function ensureSampleDocs() {
   await fs.mkdir(config.sampleDocsPath, { recursive: true });
 
-  const samples = [
-    {
-      fileName: 'teacher-onboarding-guide.md',
-      content: `# Ogretmen Onboarding Rehberi\n\n## Ilk 30 Gun\n- Ogrenci seviyesini degerlendir.\n- Hedefleri haftalik parcala.\n- Geri bildirim dongusu kur.\n\n## Ogrenme Plani\n1. Haftalik hedefleri belirle.\n2. Konu bazli mini olcumler yap.\n3. Zorlanilan konulara ek tekrar koy.\n\n## Degerlendirme\n- Haftalik quiz\n- Aylik genel tekrar\n- Veli/ogrenci bilgilendirme ozeti\n`
-    },
-    {
-      fileName: 'lesson-planning-checklist.txt',
-      content: `Ders planlama kontrol listesi:\n1. Ogrenme hedefi tanimla.\n2. On bilgi seviyesini belirle.\n3. Ornek ve alistirma dengesi kur.\n4. Ders sonunda cikis bileti kullan.\n5. Sonraki ders icin iyilestirme notu al.\n`
-    }
-  ];
+  const entries = await fs.readdir(config.sampleDocsPath, { withFileTypes: true });
+  const files = entries.filter((entry) => entry.isFile()).map((entry) => entry.name);
 
-  await Promise.all(
-    samples.map((sample) =>
-      fs.writeFile(path.join(config.sampleDocsPath, sample.fileName), sample.content, 'utf8')
-    )
-  );
+  if (!files.length) {
+    throw new Error(
+      `No sample documents found in ${config.sampleDocsPath}. Add your knowledge files (.md, .txt, .pdf, ...) to that folder and rerun.`
+    );
+  }
 
-  logStep('Sample documents ready', config.sampleDocsPath);
+  logStep('Sample documents ready', `${files.length} files in ${config.sampleDocsPath}`);
+
+  return files;
 }
 
 function isStoragePermissionError(error) {
@@ -146,12 +140,10 @@ function isStoragePermissionError(error) {
 }
 
 async function uploadSampleDocs() {
-  await ensureSampleDocs();
+  const fileNames = await ensureSampleDocs();
 
   const blobServiceClient = getBlobServiceClient();
   const containerClient = blobServiceClient.getContainerClient(config.storageContainer);
-
-  const fileNames = await fs.readdir(config.sampleDocsPath);
 
   try {
     for (const fileName of fileNames) {

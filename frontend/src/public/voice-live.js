@@ -84,8 +84,16 @@ export class VoiceLiveSession {
     const wsUrl = `${wsBase}/api/voice-live/ws?${query.toString()}`;
 
     // Acquire the microphone before opening the socket so failures surface early.
+    // Enable the browser's built-in DSP (echo cancellation, noise suppression,
+    // and auto gain) as a first line of defence against ambient/background noise
+    // before the stream reaches the server-side deep noise suppression.
     this.mediaStream = await navigator.mediaDevices.getUserMedia({
-      audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true }
+      audio: {
+        channelCount: 1,
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      }
     });
 
     // Audio playback context is only needed for the non-avatar (PCM) path;

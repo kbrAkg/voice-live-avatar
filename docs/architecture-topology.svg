@@ -1,0 +1,410 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1680 1080" font-family="Segoe UI, system-ui, sans-serif">
+  <title>Domain-Adaptive Voice Live Avatar — Azure Mimari Topolojisi</title>
+
+  <!-- ==================== DEFS: gradients + Azure service icons ==================== -->
+  <defs>
+    <!-- Azure signature gradients -->
+    <linearGradient id="gBlue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5EA0EF"/><stop offset="1" stop-color="#0078D4"/>
+    </linearGradient>
+    <linearGradient id="gDeepBlue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3B8CE8"/><stop offset="1" stop-color="#004E8C"/>
+    </linearGradient>
+    <linearGradient id="gCyan" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#37C6F4"/><stop offset="1" stop-color="#0099BC"/>
+    </linearGradient>
+    <linearGradient id="gTeal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#37C2B1"/><stop offset="1" stop-color="#038387"/>
+    </linearGradient>
+    <linearGradient id="gGreen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5DC21E"/><stop offset="1" stop-color="#107C10"/>
+    </linearGradient>
+    <linearGradient id="gPurple" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#B77AF4"/><stop offset="1" stop-color="#8661C5"/>
+    </linearGradient>
+    <linearGradient id="gOrange" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F7A24B"/><stop offset="1" stop-color="#D83B01"/>
+    </linearGradient>
+    <linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD400"/><stop offset="1" stop-color="#C19C00"/>
+    </linearGradient>
+    <linearGradient id="gPink" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F171B8"/><stop offset="1" stop-color="#C6379A"/>
+    </linearGradient>
+
+    <!-- ===== Azure Container Apps ===== -->
+    <symbol id="icoContainerApps" viewBox="0 0 48 48">
+      <path fill="url(#gBlue)" d="M24 3 6 13v22l18 10 18-10V13z"/>
+      <path fill="#fff" opacity=".95" d="M24 8.5 12 15v14l12 6.5 12-6.5V15z" transform="scale(.86) translate(3.7 3.5)"/>
+      <g fill="#0078D4">
+        <rect x="17" y="18" width="6" height="6" rx="1"/>
+        <rect x="25" y="18" width="6" height="6" rx="1"/>
+        <rect x="21" y="26" width="6" height="6" rx="1"/>
+      </g>
+    </symbol>
+
+    <!-- ===== Azure Container Apps Environment (managed env) ===== -->
+    <symbol id="icoCAE" viewBox="0 0 48 48">
+      <rect x="5" y="9" width="38" height="30" rx="4" fill="url(#gDeepBlue)"/>
+      <g fill="#fff" opacity=".95">
+        <rect x="11" y="16" width="9" height="7" rx="1.5"/>
+        <rect x="22" y="16" width="9" height="7" rx="1.5"/>
+        <rect x="16.5" y="26" width="9" height="7" rx="1.5"/>
+      </g>
+    </symbol>
+
+    <!-- ===== Azure Container Registry ===== -->
+    <symbol id="icoACR" viewBox="0 0 48 48">
+      <path fill="url(#gBlue)" d="M24 3 6 13v22l18 10 18-10V13z"/>
+      <g fill="#fff" opacity=".95">
+        <rect x="13" y="19" width="7" height="5" rx="1"/>
+        <rect x="21" y="19" width="7" height="5" rx="1"/>
+        <rect x="17" y="25" width="7" height="5" rx="1"/>
+        <circle cx="30" cy="31" r="6" fill="#50E6FF"/>
+        <circle cx="30" cy="31" r="2.4" fill="#0078D4"/>
+      </g>
+    </symbol>
+
+    <!-- ===== Azure AI Speech (Cognitive Services speech) ===== -->
+    <symbol id="icoSpeech" viewBox="0 0 48 48">
+      <rect x="5" y="7" width="38" height="34" rx="6" fill="url(#gTeal)"/>
+      <path fill="#fff" d="M24 14c-3 0-5.5 2.4-5.5 5.4v5.2c0 3 2.5 5.4 5.5 5.4s5.5-2.4 5.5-5.4v-5.2C29.5 16.4 27 14 24 14z"/>
+      <path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" d="M15 24.5v1a9 9 0 0 0 18 0v-1M24 34.5v3.5"/>
+    </symbol>
+
+    <!-- ===== Azure OpenAI / AI Foundry ===== -->
+    <symbol id="icoOpenAI" viewBox="0 0 48 48">
+      <rect x="5" y="7" width="38" height="34" rx="8" fill="url(#gGreen)"/>
+      <g fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="24" cy="24" r="4.2" fill="#fff" stroke="none"/>
+        <path d="M24 12v6M24 30v6M12 24h6M30 24h6M15.5 15.5l4.3 4.3M28.2 28.2l4.3 4.3M32.5 15.5l-4.3 4.3M19.8 28.2l-4.3 4.3"/>
+      </g>
+    </symbol>
+
+    <!-- ===== Azure AI Search ===== -->
+    <symbol id="icoSearch" viewBox="0 0 48 48">
+      <rect x="5" y="7" width="38" height="34" rx="6" fill="url(#gBlue)"/>
+      <circle cx="22" cy="22" r="7.5" fill="none" stroke="#fff" stroke-width="3"/>
+      <path d="M28 28l7 7" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- ===== Azure AI Document Intelligence ===== -->
+    <symbol id="icoDocInt" viewBox="0 0 48 48">
+      <path fill="url(#gPurple)" d="M13 5h16l8 8v30H13z"/>
+      <path fill="#fff" opacity=".55" d="M29 5v8h8z"/>
+      <g fill="#fff">
+        <rect x="18" y="20" width="14" height="2.4" rx="1"/>
+        <rect x="18" y="26" width="14" height="2.4" rx="1"/>
+        <rect x="18" y="32" width="9" height="2.4" rx="1"/>
+      </g>
+    </symbol>
+
+    <!-- ===== Azure Blob Storage ===== -->
+    <symbol id="icoStorage" viewBox="0 0 48 48">
+      <path fill="url(#gCyan)" d="M6 14h36v6H6z"/>
+      <path fill="url(#gBlue)" d="M6 20h36v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/>
+      <ellipse cx="24" cy="14" rx="18" ry="5" fill="#9FE6FF"/>
+      <circle cx="34" cy="28" r="2.4" fill="#fff"/>
+      <circle cx="34" cy="14" r="2.2" fill="#0078D4"/>
+    </symbol>
+
+    <!-- ===== Managed Identity ===== -->
+    <symbol id="icoIdentity" viewBox="0 0 48 48">
+      <rect x="5" y="7" width="38" height="34" rx="8" fill="url(#gBlue)"/>
+      <circle cx="24" cy="20" r="6" fill="#fff"/>
+      <path fill="#fff" d="M13 37c0-6 5-10 11-10s11 4 11 10z"/>
+    </symbol>
+
+    <!-- ===== Microsoft Entra ID ===== -->
+    <symbol id="icoEntra" viewBox="0 0 48 48">
+      <path fill="url(#gBlue)" d="M24 5 8 15v8c0 11 7 17 16 20 9-3 16-9 16-20v-8z"/>
+      <path fill="#fff" opacity=".92" d="M24 12 15 30h5.4l3.6-8 3.6 8H33z"/>
+    </symbol>
+
+    <!-- ===== Log Analytics ===== -->
+    <symbol id="icoLogAnalytics" viewBox="0 0 48 48">
+      <rect x="5" y="7" width="38" height="34" rx="6" fill="url(#gGold)"/>
+      <g fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13 32l6-8 5 5 9-12"/>
+      </g>
+      <circle cx="13" cy="32" r="2.4" fill="#fff"/>
+      <circle cx="33" cy="17" r="2.4" fill="#fff"/>
+    </symbol>
+
+    <!-- ===== Application Insights ===== -->
+    <symbol id="icoAppInsights" viewBox="0 0 48 48">
+      <path fill="url(#gGold)" d="M24 4c-8 0-14 6-14 14 0 6 3 9 6 12 2 2 3 4 3 7h10c0-3 1-5 3-7 3-3 6-6 6-12 0-8-6-14-14-14z"/>
+      <rect x="18" y="38" width="12" height="5" rx="2" fill="#C19C00"/>
+      <path d="M24 12v18" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- ===== Client / Browser ===== -->
+    <symbol id="icoClient" viewBox="0 0 48 48">
+      <rect x="4" y="8" width="40" height="26" rx="3" fill="url(#gDeepBlue)"/>
+      <rect x="8" y="12" width="32" height="16" rx="1.5" fill="#fff"/>
+      <path fill="#0078D4" d="M17 40h14l2 4H15z"/>
+      <g fill="#0078D4"><circle cx="16" cy="16.5" r="1.6"/><rect x="20" y="15" width="14" height="3" rx="1.5"/></g>
+    </symbol>
+
+    <!-- arrow markers -->
+    <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0 0l8 4.5L0 9z" fill="#4A4A48"/>
+    </marker>
+    <marker id="arrTeal" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0 0l8 4.5L0 9z" fill="#038387"/>
+    </marker>
+    <marker id="arrGreen" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0 0l8 4.5L0 9z" fill="#107C10"/>
+    </marker>
+    <marker id="arrGold" markerWidth="8" markerHeight="8" refX="6.5" refY="4" orient="auto">
+      <path d="M0 0l7 4L0 8z" fill="#C19C00"/>
+    </marker>
+  </defs>
+
+  <!-- extra markers for orthogonal routing -->
+  <defs>
+    <marker id="arrPurple" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0 0l8 4.5L0 9z" fill="#8661C5"/>
+    </marker>
+  </defs>
+
+  <!-- ==================== BACKGROUND ==================== -->
+  <rect width="1680" height="1080" fill="#F3F2F1"/>
+
+  <!-- Title -->
+  <g>
+    <rect x="40" y="24" width="16" height="16" fill="#F25022"/>
+    <rect x="58" y="24" width="16" height="16" fill="#7FBA00"/>
+    <rect x="40" y="42" width="16" height="16" fill="#00A4EF"/>
+    <rect x="58" y="42" width="16" height="16" fill="#FFB900"/>
+    <text x="90" y="43" font-size="28" font-weight="700" fill="#1B1A19">Domain-Adaptive Voice Live Avatar</text>
+    <text x="90" y="68" font-size="17" fill="#605E5C">Azure Architecture Topology — Services in Use and Data Flows</text>
+  </g>
+
+  <!-- ==================== LEGEND ==================== -->
+  <g transform="translate(1030,18)" font-size="14" fill="#605E5C">
+    <rect x="0" y="0" width="620" height="64" rx="8" fill="#FFFFFF" stroke="#C8C6C4"/>
+    <line x1="18" y1="23" x2="52" y2="23" stroke="#4A4A48" stroke-width="2.4" marker-end="url(#arr)"/>
+    <text x="60" y="27">Request / Response (HTTPS)</text>
+    <line x1="18" y1="45" x2="52" y2="45" stroke="#038387" stroke-width="2.6" marker-end="url(#arrTeal)"/>
+    <text x="60" y="49">Audio stream (WebSocket / Voice Live)</text>
+    <line x1="330" y1="23" x2="364" y2="23" stroke="#107C10" stroke-width="2.4" marker-end="url(#arrGreen)"/>
+    <text x="372" y="27">RAG / Model call</text>
+    <line x1="330" y1="45" x2="364" y2="45" stroke="#8661C5" stroke-width="2.2" stroke-dasharray="5 4"/>
+    <text x="372" y="49">Identity / RBAC (keyless)</text>
+  </g>
+
+  <!-- (Microsoft Entra ID moved to the identity row at the bottom, next to Managed Identity) -->
+
+  <!-- ==================== CLIENT ==================== -->
+  <g transform="translate(40,468)">
+    <rect x="0" y="0" width="188" height="150" rx="12" fill="#FFFFFF" stroke="#C8C6C4"/>
+    <use href="#icoClient" x="70" y="16" width="48" height="48"/>
+    <text x="94" y="90" font-size="16" font-weight="600" fill="#1B1A19" text-anchor="middle">Browser Client</text>
+    <text x="94" y="112" font-size="13" fill="#605E5C" text-anchor="middle">assistant-app UI</text>
+    <text x="94" y="132" font-size="13" fill="#605E5C" text-anchor="middle">Mic / Avatar playback</text>
+  </g>
+
+  <!-- ==================== RESOURCE GROUP BOUNDARY ==================== -->
+  <g>
+    <rect x="280" y="176" width="650" height="706" rx="16" fill="#FFFFFF" fill-opacity=".5"
+          stroke="#0078D4" stroke-width="2" stroke-dasharray="9 6"/>
+    <rect x="296" y="192" width="30" height="30" rx="6" fill="#0078D4"/>
+    <path d="M301 207h20M311 197v20" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+    <text x="336" y="206" font-size="16" font-weight="700" fill="#004E8C">Resource Group</text>
+    <text x="336" y="225" font-size="13" fill="#605E5C">Single region · East US 2 · one shared service identity</text>
+  </g>
+
+  <!-- Container Apps Environment (inner boundary) -->
+  <g>
+    <rect x="316" y="250" width="402" height="356" rx="14" fill="#EAF3FC" stroke="#0078D4" stroke-width="1.4"/>
+    <use href="#icoCAE" x="330" y="258" width="34" height="34"/>
+    <text x="372" y="276" font-size="15" font-weight="700" fill="#004E8C">Azure Container Apps Environment</text>
+    <text x="372" y="293" font-size="12.5" fill="#605E5C">Managed compute · service-to-service</text>
+  </g>
+
+  <!-- Frontend Container App -->
+  <g transform="translate(342,316)">
+    <rect x="0" y="0" width="352" height="74" rx="10" fill="#FFFFFF" stroke="#C8C6C4"/>
+    <use href="#icoContainerApps" x="10" y="12" width="48" height="48"/>
+    <text x="72" y="28" font-size="16" font-weight="600" fill="#1B1A19">Frontend · assistant-app</text>
+    <text x="72" y="47" font-size="12.5" fill="#605E5C">UI rendering · mode switcher (voice / avatar)</text>
+    <text x="72" y="64" font-size="12" fill="#0078D4">Container App</text>
+  </g>
+
+  <!-- Backend / orchestration-api Container App -->
+  <g transform="translate(342,404)">
+    <rect x="0" y="0" width="352" height="88" rx="10" fill="#FFFFFF" stroke="#C8C6C4"/>
+    <use href="#icoContainerApps" x="10" y="20" width="48" height="48"/>
+    <text x="72" y="27" font-size="16" font-weight="600" fill="#1B1A19">Backend · orchestration-api</text>
+    <text x="72" y="47" font-size="12.5" fill="#605E5C">Session/token · Voice Live WS proxy</text>
+    <text x="72" y="64" font-size="12.5" fill="#605E5C">RAG orchestration · fallback chat</text>
+    <text x="72" y="81" font-size="12" fill="#0078D4">Container App</text>
+  </g>
+
+  <!-- MCP server Container App -->
+  <g transform="translate(342,506)">
+    <rect x="0" y="0" width="352" height="74" rx="10" fill="#FFFFFF" stroke="#C8C6C4"/>
+    <use href="#icoContainerApps" x="10" y="12" width="48" height="48"/>
+    <text x="72" y="28" font-size="16" font-weight="600" fill="#1B1A19">MCP Server · rag-service</text>
+    <text x="72" y="47" font-size="12.5" fill="#605E5C">answer_question · retrieval + embedding</text>
+    <text x="72" y="64" font-size="12" fill="#0078D4">Container App</text>
+  </g>
+
+  <!-- Managed Identity (inside the resource group) -->
+  <g transform="translate(730,640)">
+    <rect x="0" y="0" width="176" height="92" rx="10" fill="#FFFFFF" stroke="#C8C6C4"/>
+    <use href="#icoIdentity" x="12" y="22" width="48" height="48"/>
+    <text x="70" y="35" font-size="14" font-weight="600" fill="#1B1A19">Managed</text>
+    <text x="70" y="52" font-size="14" font-weight="600" fill="#1B1A19">Identity (UAMI)</text>
+    <text x="70" y="71" font-size="12" fill="#605E5C">Keyless · RBAC</text>
+  </g>
+
+  <!-- ===== Platform / shared services OUTSIDE the resource group ===== -->
+  <!-- Container Registry (outside RG) -->
+  <g transform="translate(344,912)">
+    <rect x="0" y="0" width="180" height="84" rx="10" fill="#FFFFFF" stroke="#C8C6C4"/>
+    <use href="#icoACR" x="12" y="18" width="48" height="48"/>
+    <text x="70" y="31" font-size="14" font-weight="600" fill="#1B1A19">Container</text>
+    <text x="70" y="48" font-size="14" font-weight="600" fill="#1B1A19">Registry</text>
+    <text x="70" y="67" font-size="11.5" fill="#605E5C">Image source</text>
+  </g>
+
+  <!-- Microsoft Entra ID (outside RG — tenant identity) -->
+  <g transform="translate(728,912)">
+    <rect x="0" y="0" width="180" height="84" rx="10" fill="#FFFFFF" stroke="#C8C6C4"/>
+    <use href="#icoEntra" x="12" y="18" width="48" height="48"/>
+    <text x="70" y="31" font-size="14" font-weight="600" fill="#1B1A19">Microsoft</text>
+    <text x="70" y="48" font-size="14" font-weight="600" fill="#1B1A19">Entra ID</text>
+    <text x="70" y="67" font-size="11.5" fill="#605E5C">Tenant identity</text>
+  </g>
+
+  <!-- ==================== AI / DATA SERVICES (right column) ==================== -->
+  <!-- Azure AI Speech -->
+  <g transform="translate(1000,250)">
+    <rect x="0" y="0" width="300" height="104" rx="12" fill="#FFFFFF" stroke="#C8C6C4"/>
+    <use href="#icoSpeech" x="16" y="28" width="50" height="50"/>
+    <text x="80" y="35" font-size="16" font-weight="600" fill="#1B1A19">Azure AI Speech</text>
+    <text x="80" y="56" font-size="12.5" fill="#605E5C">Voice Live realtime (S2S)</text>
+    <text x="80" y="74" font-size="12.5" fill="#605E5C">STT / TTS · Avatar synthesis</text>
+    <text x="80" y="92" font-size="12" fill="#038387">Cognitive Services</text>
+  </g>
+
+  <!-- Azure OpenAI / AI Foundry (external RG) -->
+  <g transform="translate(1000,378)">
+    <rect x="0" y="0" width="300" height="104" rx="12" fill="#FFFFFF" stroke="#107C10" stroke-dasharray="7 5"/>
+    <use href="#icoOpenAI" x="16" y="28" width="50" height="50"/>
+    <text x="80" y="35" font-size="16" font-weight="600" fill="#1B1A19">Azure AI Foundry</text>
+    <text x="80" y="56" font-size="12.5" fill="#605E5C">Azure OpenAI — chat + embedding</text>
+    <text x="80" y="74" font-size="12.5" fill="#605E5C">Existing / external resource</text>
+    <text x="80" y="92" font-size="12" fill="#107C10">External resource group</text>
+  </g>
+
+  <!-- Azure AI Search -->
+  <g transform="translate(1000,506)">
+    <rect x="0" y="0" width="300" height="96" rx="12" fill="#FFFFFF" stroke="#C8C6C4"/>
+    <use href="#icoSearch" x="16" y="24" width="50" height="50"/>
+    <text x="80" y="36" font-size="16" font-weight="600" fill="#1B1A19">Azure AI Search</text>
+    <text x="80" y="57" font-size="12.5" fill="#605E5C">Vector + keyword index</text>
+    <text x="80" y="76" font-size="12.5" fill="#605E5C">Grounding / retrieval</text>
+  </g>
+
+  <!-- Document Intelligence -->
+  <g transform="translate(1000,626)">
+    <rect x="0" y="0" width="300" height="96" rx="12" fill="#FFFFFF" stroke="#C8C6C4"/>
+    <use href="#icoDocInt" x="16" y="24" width="50" height="50"/>
+    <text x="80" y="36" font-size="16" font-weight="600" fill="#1B1A19">Document Intelligence</text>
+    <text x="80" y="57" font-size="12.5" fill="#605E5C">Document parsing / layout</text>
+    <text x="80" y="76" font-size="12.5" fill="#605E5C">Knowledge ingestion pipeline</text>
+  </g>
+
+  <!-- Blob Storage -->
+  <g transform="translate(1000,746)">
+    <rect x="0" y="0" width="300" height="96" rx="12" fill="#FFFFFF" stroke="#C8C6C4"/>
+    <use href="#icoStorage" x="16" y="24" width="50" height="50"/>
+    <text x="80" y="36" font-size="16" font-weight="600" fill="#1B1A19">Azure Blob Storage</text>
+    <text x="80" y="57" font-size="12.5" fill="#605E5C">Source document store</text>
+    <text x="80" y="76" font-size="12.5" fill="#605E5C">Ingestion input</text>
+  </g>
+
+  <!-- ==================== OBSERVABILITY (right, lower) ==================== -->
+  <g transform="translate(1360,506)">
+    <rect x="0" y="0" width="280" height="216" rx="12" fill="#FFFDF5" stroke="#C19C00" stroke-width="1.2"/>
+    <text x="20" y="31" font-size="15" font-weight="700" fill="#8A7100">Observability</text>
+    <g transform="translate(20,46)">
+      <rect x="0" y="0" width="240" height="74" rx="10" fill="#FFFFFF" stroke="#C8C6C4"/>
+      <use href="#icoLogAnalytics" x="12" y="13" width="48" height="48"/>
+      <text x="70" y="33" font-size="14.5" font-weight="600" fill="#1B1A19">Log Analytics</text>
+      <text x="70" y="54" font-size="12.5" fill="#605E5C">Central log workspace</text>
+    </g>
+    <g transform="translate(20,130)">
+      <rect x="0" y="0" width="240" height="74" rx="10" fill="#FFFFFF" stroke="#C8C6C4"/>
+      <use href="#icoAppInsights" x="12" y="13" width="48" height="48"/>
+      <text x="70" y="33" font-size="14.5" font-weight="600" fill="#1B1A19">Application Insights</text>
+      <text x="70" y="54" font-size="12.5" fill="#605E5C">APM / telemetry</text>
+    </g>
+  </g>
+
+  <!-- ==================== CONNECTIONS (orthogonal, no box overlap) ==================== -->
+
+  <!-- Microsoft Entra ID (outside) -> Managed Identity (crosses RG boundary) -->
+  <path d="M818 912 V734" fill="none" stroke="#8661C5" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrPurple)"/>
+  <text x="826" y="804" font-size="11" fill="#8661C5">identity issuance</text>
+
+  <!-- Client -> Frontend (HTTPS) -->
+  <path d="M228 505 H322 V354 H340" fill="none" stroke="#4A4A48" stroke-width="2.2" marker-end="url(#arr)"/>
+  <text x="234" y="497" font-size="12.5" fill="#4A4A48">HTTPS · UI</text>
+
+  <!-- Client <-> Backend (Voice Live WebSocket) -->
+  <path d="M228 585 H332 V451 H340" fill="none" stroke="#038387" stroke-width="2.4" marker-end="url(#arrTeal)"/>
+  <text x="234" y="606" font-size="12.5" fill="#038387">WebSocket · PCM16 audio</text>
+
+  <!-- Frontend -> Backend -->
+  <path d="M518 390 V404" fill="none" stroke="#4A4A48" stroke-width="2.2" marker-end="url(#arr)"/>
+
+  <!-- Backend -> MCP -->
+  <path d="M518 492 V506" fill="none" stroke="#107C10" stroke-width="2.2" marker-end="url(#arrGreen)"/>
+  <text x="526" y="503" font-size="12" fill="#107C10">search_knowledge</text>
+
+  <!-- Backend -> Speech (Voice Live) -->
+  <path d="M694 428 H858 V302 H998" fill="none" stroke="#038387" stroke-width="2.4" marker-end="url(#arrTeal)"/>
+  <text x="724" y="420" font-size="12.5" fill="#038387">Voice Live / STT · TTS</text>
+
+  <!-- Backend -> OpenAI (chat) -->
+  <path d="M694 458 H902 V430 H998" fill="none" stroke="#107C10" stroke-width="2.2" marker-end="url(#arrGreen)"/>
+  <text x="792" y="450" font-size="12.5" fill="#107C10">chat completions</text>
+
+  <!-- MCP -> OpenAI (embedding) -->
+  <path d="M694 562 H876 V446 H998" fill="none" stroke="#107C10" stroke-width="1.8"
+        stroke-dasharray="6 4" marker-end="url(#arrGreen)"/>
+  <text x="726" y="578" font-size="12" fill="#107C10">embedding</text>
+
+  <!-- MCP -> Search (retrieval) -->
+  <path d="M694 548 H946 V554 H998" fill="none" stroke="#107C10" stroke-width="2.2" marker-end="url(#arrGreen)"/>
+  <text x="796" y="540" font-size="12.5" fill="#107C10">retrieval</text>
+
+  <!-- Ingestion: Storage -> Document Intelligence -> Search (vertical in AI column) -->
+  <path d="M1120 746 V726" fill="none" stroke="#8661C5" stroke-width="2.2" marker-end="url(#arrPurple)"/>
+  <text x="1128" y="740" font-size="12" fill="#8661C5">ingestion</text>
+  <path d="M1120 626 V606" fill="none" stroke="#8661C5" stroke-width="2.2" marker-end="url(#arrPurple)"/>
+  <text x="1128" y="620" font-size="12" fill="#8661C5">chunk → index</text>
+
+  <!-- Container Registry (outside) -> Container Apps env : image pull (crosses RG boundary) -->
+  <path d="M434 912 V608" fill="none" stroke="#0078D4" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+  <text x="442" y="726" font-size="12" fill="#0078D4">image pull</text>
+
+  <!-- Managed Identity -> ALL AI data services : RBAC bus with a tap into every service -->
+  <path d="M906 690 H972" fill="none" stroke="#8661C5" stroke-width="2" stroke-dasharray="6 4"/>
+  <path d="M972 335 V800" fill="none" stroke="#8661C5" stroke-width="2" stroke-dasharray="6 4"/>
+  <path d="M972 335 H998" fill="none" stroke="#8661C5" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrPurple)"/>
+  <path d="M972 470 H998" fill="none" stroke="#8661C5" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrPurple)"/>
+  <path d="M972 585 H998" fill="none" stroke="#8661C5" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrPurple)"/>
+  <path d="M972 690 H998" fill="none" stroke="#8661C5" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrPurple)"/>
+  <path d="M972 800 H998" fill="none" stroke="#8661C5" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrPurple)"/>
+  <text x="960" y="560" font-size="12" font-weight="600" fill="#8661C5" text-anchor="middle" transform="rotate(-90 960 560)">RBAC · keyless → every data service</text>
+
+  <!-- Apps -> Observability : bottom lane, no box overlap -->
+  <path d="M517 606 V858 H1490 V726" fill="none" stroke="#C19C00" stroke-width="1.8"
+        stroke-dasharray="4 4" marker-end="url(#arrGold)"/>
+  <text x="1150" y="850" font-size="12" fill="#C19C00">logs · telemetry</text>
+</svg>

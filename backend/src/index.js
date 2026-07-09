@@ -226,6 +226,56 @@ const voiceLiveVadType = process.env.AZURE_VOICE_LIVE_VAD || 'azure_semantic_vad
 // supports the model; falls back to azure-speech when unset.
 const voiceLiveTranscriptionModel = process.env.AZURE_VOICE_LIVE_TRANSCRIPTION_MODEL || 'azure-speech';
 
+// --- Noise / echo robustness -------------------------------------------------
+// Server-side audio cleanup applied to the microphone stream before VAD and
+// transcription. azure_deep_noise_suppression removes background/ambient noise
+// (fans, traffic, room chatter); server_echo_cancellation prevents the avatar's
+// own voice from being picked up as user speech (barge-in false triggers).
+const voiceLiveNoiseReduction = process.env.AZURE_VOICE_LIVE_NOISE_REDUCTION || 'azure_deep_noise_suppression';
+const voiceLiveEchoCancellation = process.env.AZURE_VOICE_LIVE_ECHO_CANCELLATION || 'server_echo_cancellation';
+
+// VAD tuning. A higher threshold makes speech detection less sensitive to
+// background noise (fewer false "speech_started" triggers in noisy rooms); a
+// longer silence duration avoids cutting the user off between words. These are
+// env-overridable so they can be tuned per deployment/environment.
+//
+// IMPORTANT: these values directly affect barge-in responsiveness. A high
+// threshold or a large speech_duration_ms delays/prevents interruption of the
+// assistant. The defaults below stay close to the Azure semantic-VAD defaults
+// (threshold 0.5, speech_duration ~80ms) so barge-in keeps working; the heavy
+// lifting for noise rejection is done by azure_deep_noise_suppression and
+// server_echo_cancellation, which do NOT hurt barge-in. Raise the values below
+// only if a specific noisy environment needs it.
+function readFloatEnv(name, fallback) {
+  const parsed = Number.parseFloat(process.env[name]);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+function readIntEnv(name, fallback) {
+  const parsed = Number.parseInt(process.env[name], 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+const voiceLiveVadThreshold = readFloatEnv('AZURE_VOICE_LIVE_VAD_THRESHOLD', 0.5);
+const voiceLiveVadPrefixPaddingMs = readIntEnv('AZURE_VOICE_LIVE_VAD_PREFIX_PADDING_MS', 300);
+const voiceLiveVadSilenceDurationMs = readIntEnv('AZURE_VOICE_LIVE_VAD_SILENCE_MS', 500);
+// Minimum sustained speech (ms) required before a turn starts. Only sent when
+// explicitly configured; by default we defer to the service's semantic-VAD
+// default so avatar responses and barge-in behave as designed. Raising it can
+// destabilise the avatar response/turn flow, so keep it opt-in.
+const voiceLiveVadSpeechDurationMs = readIntEnv('AZURE_VOICE_LIVE_VAD_SPEECH_MS', 0);
+// Drop non-speech filler ("uh", "hmm") from turn-taking. Opt-in: defaults to
+// false (the service default) because enabling it alters the ongoing-response
+// turn logic and can interfere with avatar playback.
+const voiceLiveRemoveFillerWords = process.env.AZURE_VOICE_LIVE_REMOVE_FILLER_WORDS === 'true';
+// Restrict filler-word detection to these languages for higher accuracy.
+// Comma-separated (e.g. "en,de"). Empty = service default. NOTE: only the
+// languages supported by azure_semantic_vad_multilingual are valid (en, es, fr,
+// it, de, ja, pt, zh, ko, hi); unsupported locales (e.g. "tr") make the session
+// config fail, so leave this empty for Turkish.
+const voiceLiveVadLanguages = (process.env.AZURE_VOICE_LIVE_VAD_LANGUAGES || '')
+  .split(',')
+  .map((code) => code.trim())
+  .filter(Boolean);
+
 const searchKnowledgeTool = {
   type: 'function',
   name: 'search_knowledge',
@@ -282,16 +332,25 @@ function buildVoiceLiveInstructions(language) {
 function buildTurnDetection() {
   const detection = {
     type: voiceLiveVadType,
-    threshold: 0.5,
-    prefix_padding_ms: 300,
-    silence_duration_ms: 500
+    threshold: voiceLiveVadThreshold,
+    prefix_padding_ms: voiceLiveVadPrefixPaddingMs,
+    silence_duration_ms: voiceLiveVadSilenceDurationMs
   };
+
+  // Only send speech_duration_ms when explicitly configured; otherwise defer to
+  // the service default so the avatar response/turn flow stays stable.
+  if (voiceLiveVadSpeechDurationMs > 0) {
+    detection.speech_duration_ms = voiceLiveVadSpeechDurationMs;
+  }
 
   // interrupt_response / remove_filler_words are only valid for the semantic VADs.
   if (voiceLiveVadType.startsWith('azure_semantic')) {
-    detection.remove_filler_words = false;
+    detection.remove_filler_words = voiceLiveRemoveFillerWords;
     detection.interrupt_response = true;
     detection.auto_truncate = true;
+    if (voiceLiveVadLanguages.length) {
+      detection.languages = voiceLiveVadLanguages;
+    }
   }
 
   return detection;
@@ -305,8 +364,8 @@ function buildVoiceLiveSessionUpdate(language, voice, options = {}) {
     output_audio_format: 'pcm16',
     input_audio_sampling_rate: 24000,
     input_audio_transcription: { model: voiceLiveTranscriptionModel, language },
-    input_audio_noise_reduction: { type: 'azure_deep_noise_suppression' },
-    input_audio_echo_cancellation: { type: 'server_echo_cancellation' },
+    input_audio_noise_reduction: { type: voiceLiveNoiseReduction },
+    input_audio_echo_cancellation: { type: voiceLiveEchoCancellation },
     turn_detection: buildTurnDetection(),
     voice: { name: voice, type: 'azure-standard' },
     tools: [searchKnowledgeTool],
@@ -343,7 +402,7 @@ async function callKnowledgeBase(query, language) {
   return response.json();
 }
 
-async function maybeHandleFunctionCall(rawData, upstream, language) {
+async function maybeHandleFunctionCall(rawData, upstream, language, connState) {
   let message;
   try {
     message = JSON.parse(rawData.toString());
@@ -355,6 +414,11 @@ async function maybeHandleFunctionCall(rawData, upstream, language) {
   if (message?.type !== 'response.output_item.done' || item?.type !== 'function_call' || item.name !== 'search_knowledge') {
     return;
   }
+
+  // Remember which user turn this tool call belongs to. If the user barges in
+  // with a new question while the knowledge base lookup is still running, the
+  // turn counter advances and we must not answer this now-stale question.
+  const turnAtStart = connState ? connState.turn : 0;
 
   let query = '';
   try {
@@ -379,6 +443,8 @@ async function maybeHandleFunctionCall(rawData, upstream, language) {
     return;
   }
 
+  // Always deliver the function output to keep the model's conversation state
+  // consistent (the function_call must be paired with its output).
   upstream.send(JSON.stringify({
     type: 'conversation.item.create',
     item: {
@@ -387,7 +453,15 @@ async function maybeHandleFunctionCall(rawData, upstream, language) {
       output: JSON.stringify(output)
     }
   }));
-  upstream.send(JSON.stringify({ type: 'response.create' }));
+
+  // Only speak the answer if the user hasn't started a newer turn in the
+  // meantime. A barge-in advances connState.turn, so the interrupted question's
+  // response is suppressed and the newer question drives its own response.
+  if (!connState || connState.turn === turnAtStart) {
+    upstream.send(JSON.stringify({ type: 'response.create' }));
+  } else {
+    console.log('[VoiceLive] Suppressed stale answer after barge-in.');
+  }
 }
 
 async function handleVoiceLiveConnection(clientWs, req) {
@@ -404,6 +478,10 @@ async function handleVoiceLiveConnection(clientWs, req) {
   const avatarStyle = params.get('style') || 'casual-sitting';
 
   const clientQueue = [];
+  // Per-connection turn state. `turn` increments each time the user starts
+  // speaking; `responseActive` tracks whether the assistant is mid-response so
+  // we can cancel it on barge-in.
+  const connState = { turn: 0, responseActive: false };
   let upstream;
 
   try {
@@ -437,7 +515,33 @@ async function handleVoiceLiveConnection(clientWs, req) {
     if (clientWs.readyState === clientWs.OPEN) {
       clientWs.send(data.toString());
     }
-    maybeHandleFunctionCall(data, upstream, language).catch((error) => {
+
+    // Track turns and cancel an in-progress answer when the user barges in so
+    // the newly asked question takes over instead of the previous one.
+    try {
+      const evt = JSON.parse(data.toString());
+      switch (evt?.type) {
+        case 'input_audio_buffer.speech_started':
+          connState.turn += 1;
+          if (connState.responseActive && upstream.readyState === upstream.OPEN) {
+            upstream.send(JSON.stringify({ type: 'response.cancel' }));
+          }
+          break;
+        case 'response.created':
+          connState.responseActive = true;
+          break;
+        case 'response.done':
+        case 'response.cancelled':
+          connState.responseActive = false;
+          break;
+        default:
+          break;
+      }
+    } catch {
+      /* non-JSON frame; ignore */
+    }
+
+    maybeHandleFunctionCall(data, upstream, language, connState).catch((error) => {
       console.error('[VoiceLive] Function-call handling failed:', error.message);
     });
   });
