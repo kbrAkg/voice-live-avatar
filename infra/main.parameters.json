@@ -11,12 +11,6 @@
     "baseName": {
       "value": "assistantapp"
     },
-    "assistantDomain": {
-      "value": "education"
-    },
-    "assistantProfile": {
-      "value": "default"
-    },
     "frontendImage": {
       "value": ""
     },

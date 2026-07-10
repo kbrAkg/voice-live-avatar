@@ -9,12 +9,6 @@ param location string = 'eastus2'
 @description('Domain-agnostic base name used in all resource names.')
 param baseName string = 'assistantapp'
 
-@description('Primary assistant domain profile. Example: education/health/sales.')
-param assistantDomain string = 'education'
-
-@description('Default behavior profile to load in app layer.')
-param assistantProfile string = 'default'
-
 @description('Container image tags. Leave empty so first provision uses a placeholder image; azd deploy pushes and swaps the real image.')
 param frontendImage string = ''
 param backendImage string = ''
@@ -42,10 +36,7 @@ module conventions './modules/resource-group-conventions.bicep' = {
 }
 
 var naming = conventions.outputs.naming
-var tags = union(conventions.outputs.tags, {
-  assistantDomain: assistantDomain
-  assistantProfile: assistantProfile
-})
+var tags = conventions.outputs.tags
 
 // Tek paylasilan servis kimligi (service user). Tum container app'ler bunu kullanir
 // ve tum RBAC atamalari bu kimlige yapilir. Hicbir yerde key/anahtar kullanilmaz.
@@ -132,14 +123,6 @@ var mcpUrlValue = 'https://${naming.mcpApp}.${caeDefaultDomain}'
 
 var backendEnvVars = [
   {
-    name: 'ASSISTANT_DOMAIN'
-    value: assistantDomain
-  }
-  {
-    name: 'ASSISTANT_PROFILE'
-    value: assistantProfile
-  }
-  {
     name: 'AZURE_MANAGED_IDENTITY_CLIENT_ID'
     value: managedIdentity.outputs.managedIdentityClientId
   }
@@ -178,10 +161,6 @@ var backendEnvVars = [
 ]
 
 var mcpEnvVars = [
-  {
-    name: 'ASSISTANT_DOMAIN'
-    value: assistantDomain
-  }
   {
     name: 'AZURE_MANAGED_IDENTITY_CLIENT_ID'
     value: managedIdentity.outputs.managedIdentityClientId
@@ -305,7 +284,6 @@ output frontendUrl string = 'https://${frontendApp.outputs.fqdn}'
 output backendUrl string = 'https://${backendApp.outputs.fqdn}'
 output mcpUrl string = 'https://${mcpApp.outputs.fqdn}'
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = acr.outputs.acrLoginServer
-output assistantDomainOutput string = assistantDomain
 output roleAssignmentCount int = rbac.outputs.roleAssignmentCount
 output serviceIdentityClientId string = managedIdentity.outputs.managedIdentityClientId
 output serviceIdentityPrincipalId string = managedIdentity.outputs.managedIdentityPrincipalId

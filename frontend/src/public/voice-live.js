@@ -226,9 +226,17 @@ export class VoiceLiveSession {
         this.handlers.onState?.('listening');
         break;
 
+      case 'voice_live.diagnostic':
+        if (message.message) {
+          this.log(message.message);
+        }
+        break;
+
       case 'error':
+      case 'session.error':
+      case 'response.error':
         this.handlers.onError?.(message.error?.message || 'Voice Live error');
-        this.log(`Voice Live error: ${message.error?.message || 'unknown'}`);
+        this.log(`Voice Live error: ${message.error?.message || message.error?.code || 'unknown'}`);
         break;
 
       default:

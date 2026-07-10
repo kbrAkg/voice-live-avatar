@@ -23,8 +23,6 @@ app.get('/runtime-config.js', (_req, res) => {
   const config = {
     backendBaseUrl: process.env.BACKEND_BASE_URL || 'http://localhost:8081',
     defaultLanguage: process.env.DEFAULT_LANGUAGE || 'tr-TR',
-    assistantDomain: process.env.ASSISTANT_DOMAIN || 'education',
-    assistantProfile: process.env.ASSISTANT_PROFILE || 'teacher-default',
     enabledModes: {
       voiceOnly: process.env.ENABLE_MODE_VOICE_ONLY !== 'false',
       videoAvatar: process.env.ENABLE_MODE_VIDEO_AVATAR !== 'false'

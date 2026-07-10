@@ -47,6 +47,4 @@ This repository contains a domain-agnostic PoC for multilingual (TR + EN) live a
 
 ## Domain-Agnostic Naming Rule
 No file/folder/module name includes a vertical-specific label. Domain behavior is selected by configuration:
-- `ASSISTANT_DOMAIN`
-- `ASSISTANT_PROFILE`
 - files under `config/profiles/`

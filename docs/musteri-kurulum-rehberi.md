@@ -64,22 +64,21 @@ Aşağıdaki bloğu **tek seferde** çalıştır. İsimleri kendine göre deği�
 
 ```pwsh
 $LOCATION   = "eastus2"
-$RG         = "rg-voice-live-avatar"
+$RG         = "rg-healthcare-voice-live-avatar"
 
 # Managed servisler (bu RG içinde)
-$SPEECH     = "spavatar001"
-$SEARCH     = "srchavatar001"
-$DOCINT     = "docavatar001"
-$STORAGE    = "stavatar001"
+$SPEECH     = "spavatarhealthcare"
+$SEARCH     = "srchavatarhealthcare"
+$DOCINT     = "docavatarhealthcare"
+$STORAGE    = "stavatarhealthcare"
 $CONTAINER  = "knowledge"
 
 # Azure AI Foundry (OpenAI + Voice Live) — aynı RG içinde
-$FOUNDRY    = "aifoundryavatar001"
+$FOUNDRY    = "aifoundryavatarhealthcare"
 
 # Model deployment adları (.env ile birebir aynı olmalı)
 $CHAT_DEPLOYMENT      = "gpt-5.4"
 $EMBEDDING_DEPLOYMENT = "text-embedding-3-small"
-$REALTIME_DEPLOYMENT  = "gpt-realtime-2.1"
 ```
 
 > **Not:** Bu rehber embedding modeli olarak `text-embedding-3-small` (1536 boyut) kullanır çünkü ingestion index'i varsayılan olarak 1536 boyutla oluşturur. Eğer `text-embedding-3-large` kullanacaksanız `.env` içinde `AZURE_SEARCH_EMBEDDING_DIMENSIONS=3072` ayarını da yapmalısınız.
@@ -183,13 +182,48 @@ az storage account create `
   --sku Standard_LRS `
   --kind StorageV2 `
   --min-tls-version TLS1_2 `
-  --allow-blob-public-access false
+  --allow-blob-public-access false `
+  --public-network-access Enabled `
+  --default-action Allow
 
 az storage container create `
   --account-name $STORAGE `
   --name $CONTAINER `
   --auth-mode login
 ```
+
+> **Not:** `--allow-blob-public-access false`, blob'lara **anonim** erişimi kapatır (güvenlik için önerilir); veri düzlemi erişimi RBAC ile yapılır. `--public-network-access Enabled` ve `--default-action Allow` ise storage'a **ağ üzerinden** (senin makinenden ve uygulamalardan) erişimi açık tutar. Bu ikisi birbirinden bağımsızdır.
+
+### `The request may be blocked by network rules of storage account` hatası alırsanız
+
+Bu hata iki nedenden olabilir:
+
+1. **Ağ kuralları kapalı** (yukarıdaki `--default-action Allow` verilmemiş eski bir hesap). Mevcut hesabı ağa açmak için:
+
+   ```pwsh
+   az storage account update `
+     --name $STORAGE `
+     --resource-group $RG `
+     --public-network-access Enabled `
+     --default-action Allow
+
+   # Ağ kural setini doğrula (defaultAction = Allow olmalı)
+   az storage account show --name $STORAGE --resource-group $RG --query networkRuleSet
+   ```
+
+2. **RBAC henüz yayılmadı.** `--auth-mode login` veri düzlemi çağrısı için hesabında **Storage Blob Data Contributor** rolü gerekir; rol atandıysa bile yayılması birkaç dakika sürebilir. Rolü kendine hemen atamak için:
+
+   ```pwsh
+   $STORAGE_ID = az storage account show --name $STORAGE --resource-group $RG --query id -o tsv
+   $ME = az ad signed-in-user show --query id -o tsv
+   az role assignment create `
+     --assignee-object-id $ME `
+     --assignee-principal-type User `
+     --role "Storage Blob Data Contributor" `
+     --scope $STORAGE_ID
+   ```
+
+   Birkaç dakika bekleyip `az storage container create` komutunu tekrar çalıştır.
 
 ---
 
@@ -212,10 +246,13 @@ az cognitiveservices account create `
 
 ## 11. Modelleri Deploy Et
 
-> Model sürümleri zamanla değişir. Bölgende hangi sürümlerin mevcut olduğunu görmek için:
+> Model sürümleri zamanla değişir. Bölgende **sadece bu rehberde kullanılan** modellerin sürümlerini görmek için (uzun listeyi filtreler):
 > ```pwsh
-> az cognitiveservices account list-models --name $FOUNDRY --resource-group $RG -o table
+> az cognitiveservices account list-models --name $FOUNDRY --resource-group $RG `
+   --query "[?name=='gpt-5.4' || name=='text-embedding-3-small'].{name:name, version:version, format:format}" `
+   -o table
 > ```
+> Tüm modelleri görmek istersen `--query` satırını kaldırıp sadece `-o table` bırak.
 > Aşağıdaki `--model-version` değerlerini bu çıktıya göre güncelle.
 
 ### 11.1 Chat modeli (gpt-5.4)
@@ -226,7 +263,7 @@ az cognitiveservices account deployment create `
   --resource-group $RG `
   --deployment-name $CHAT_DEPLOYMENT `
   --model-name gpt-5.4 `
-  --model-version "<list-models-çıktısındaki-sürüm>" `
+  --model-version "2026-03-05" `
   --model-format OpenAI `
   --sku-name GlobalStandard `
   --sku-capacity 50
@@ -246,19 +283,7 @@ az cognitiveservices account deployment create `
   --sku-capacity 50
 ```
 
-### 11.3 Realtime / Voice Live modeli (gpt-realtime-2.1)
-
-```pwsh
-az cognitiveservices account deployment create `
-  --name $FOUNDRY `
-  --resource-group $RG `
-  --deployment-name $REALTIME_DEPLOYMENT `
-  --model-name gpt-realtime-2.1 `
-  --model-version "<list-models-çıktısındaki-sürüm>" `
-  --model-format OpenAI `
-  --sku-name GlobalStandard `
-  --sku-capacity 1
-```
+> **Not (Voice Live):** Voice Live realtime hattı için ayrı bir Azure OpenAI deployment'ı **oluşturmanıza gerek yoktur**. Voice Live, deployment yerine Microsoft'un yönettiği hosted katalog modelini (`AZURE_VOICE_LIVE_MODEL=gpt-realtime`) doğrudan kullanır. Bu nedenle bu rehberde ayrı bir realtime model deployment adımı yoktur.
 
 Deployment'ları doğrula:
 
@@ -317,8 +342,6 @@ AZURE_CLIENT_ID=
 AZURE_CLIENT_SECRET=
 AZURE_MANAGED_IDENTITY_CLIENT_ID=
 
-ASSISTANT_DOMAIN=education
-ASSISTANT_PROFILE=teacher-default
 DEFAULT_LANGUAGE=tr-TR
 
 VOICE_MODE_DEFAULT=voice-only
@@ -330,37 +353,39 @@ MCP_BASE_URL=http://localhost:8082
 
 # Speech
 AZURE_SPEECH_RESOURCE_ID=<speech-resource-id>
-AZURE_SPEECH_ACCOUNT_NAME=spavatar001
+AZURE_SPEECH_ACCOUNT_NAME=spavatarhealthcare
 AZURE_SPEECH_REGION=eastus2
 
 # Search
-AZURE_SEARCH_SERVICE=srchavatar001
+AZURE_SEARCH_SERVICE=srchavatarhealthcare
 AZURE_SEARCH_INDEX=knowledge-index
 
 # Storage
-AZURE_STORAGE_ACCOUNT=stavatar001
+AZURE_STORAGE_ACCOUNT=stavatarhealthcare
 AZURE_STORAGE_CONTAINER=knowledge
 
 # Document Intelligence
-AZURE_DOCUMENT_INTELLIGENCE_ACCOUNT_NAME=docavatar001
+AZURE_DOCUMENT_INTELLIGENCE_ACCOUNT_NAME=docavatarhealthcare
 AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=<docint-endpoint>
 
 # Azure AI Foundry (OpenAI) — bu RG içinde
-AZURE_OPENAI_ACCOUNT_NAME=aifoundryavatar001
+AZURE_OPENAI_ACCOUNT_NAME=aifoundryavatarhealthcare
 AZURE_OPENAI_RESOURCE_GROUP=rg-voice-live-avatar
-AZURE_OPENAI_ENDPOINT=https://aifoundryavatar001.openai.azure.com/
+AZURE_OPENAI_ENDPOINT=https://aifoundryavatarhealthcare.openai.azure.com/
 AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-5.4
 AZURE_OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-3-small
-AZURE_OPENAI_REALTIME_DEPLOYMENT=gpt-realtime-2.1
 
 # Voice Live (realtime)
+# NOT: Voice Live, Azure OpenAI deployment'ı DEĞİL, Microsoft'un hosted
+# katalog modelini kullanır. AZURE_VOICE_LIVE_MODEL, deployment adı (ör.
+# gpt-realtime-2.1) DEĞİL, Voice Live'ın beklediği TEMEL MODEL adıdır
+# (gpt-realtime). Deployment adını verirsen upstream bağlantısı ECONNRESET
+# ile sifirlanir.
 AZURE_VOICE_LIVE_ENDPOINT=<foundry-cognitiveservices-endpoint>
-AZURE_VOICE_LIVE_MODEL=gpt-realtime-2.1
+AZURE_VOICE_LIVE_MODEL=gpt-realtime
 AZURE_VOICE_LIVE_API_VERSION=2025-05-01-preview
-AZURE_VOICE_LIVE_TRANSCRIPTION_MODEL=mai-transcribe-1.5
+AZURE_VOICE_LIVE_TRANSCRIPTION_MODEL=azure-speech
 AZURE_VOICE_LIVE_VAD=azure_semantic_vad_multilingual
-
-# Kimlik doğrulama modu (keyless / RBAC)
 AZURE_AUTH_MODE=service-principal
 KNOWLEDGE_USE_AZURE_CLI_CREDENTIAL=false
 ```
@@ -379,11 +404,32 @@ Bu tek komut şunları yapar:
 - Search için AAD (RBAC) veri düzlemi erişimini açar ve tüm kaynaklarda anahtar (key) erişimini kapatır (`-DisableLocalAuth`).
 
 ```pwsh
+$SUB_ID = az account show --query id -o tsv
+
+# Oluşturulacak servis kullanıcısının (service principal) adı
+$SP_NAME = "sp-healthcare-voice-live-avatar-dev"
+
 ./scripts/setup-service-identity.ps1 `
+  -SubscriptionId $SUB_ID `
+  -ResourceGroup $RG `
+  -Location $LOCATION `
+  -ServicePrincipalName $SP_NAME `
+  -SpeechAccountName $SPEECH `
+  -SearchServiceName $SEARCH `
+  -StorageAccountName $STORAGE `
+  -FoundryResourceGroup $RG `
+  -FoundryAccountName $FOUNDRY `
   -CreateServicePrincipal `
   -AssignCurrentUser `
   -DisableLocalAuth
 ```
+
+> Document Intelligence kaynağını script `$RG` içinden otomatik keşfeder (`kind=FormRecognizer`), bu yüzden ayrıca vermene gerek yok. `-ServicePrincipalName` verilmezse script varsayılan olarak `sp-speechavatarassistantapp-dev` adını kullanır.
+>
+> **Alternatif:** `.env` dosyasını 13. adımda elle **kaynak isimleriyle** doldurduysan, parametreleri geçmeden kısa formu da kullanabilirsin:
+> ```pwsh
+> ./scripts/setup-service-identity.ps1 -CreateServicePrincipal -AssignCurrentUser -DisableLocalAuth
+> ```
 
 Script çıktısının sonunda görünen değerleri `.env` içine yaz:
 
@@ -409,6 +455,16 @@ Atanan roller (özet):
 ---
 
 ## 15. Bilgi Tabanını Yükle (Knowledge Ingestion)
+
+> **Ön koşul:** Bu adım repo kökündeki `.env` dosyasını okur. Devam etmeden önce `.env` **dolu** olmalı (özellikle `AZURE_SEARCH_SERVICE`, `AZURE_STORAGE_ACCOUNT`, `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_EMBEDDING_DEPLOYMENT`). Henüz oluşturmadıysan **önce [18. adımdaki](#18-envdevelopment-dosyasını-otomatik-oluştur) scripti çalıştır** (veya 13. adımı elle doldur) ve `Copy-Item .env.development .env -Force` ile `.env`'i yerine koy.
+>
+> `Missing required environment variables: AZURE_SEARCH_SERVICE, AZURE_STORAGE_ACCOUNT, AZURE_OPENAI_ENDPOINT` hatası tam olarak `.env`'in eksik/boş olduğunu gösterir.
+>
+> Hızlı kontrol (repo kökünde):
+> ```pwsh
+> Test-Path .env
+> Select-String -Path .env -Pattern 'AZURE_SEARCH_SERVICE|AZURE_STORAGE_ACCOUNT|AZURE_OPENAI_ENDPOINT'
+> ```
 
 Search index'ini oluştur, örnek dokümanları Blob'a yükle ve index'e işle:
 
@@ -450,6 +506,11 @@ cd backend;    $env:PORT=8081; npm start
 cd frontend;   $env:PORT=8080; npm start
 ```
 
+ya da üç servisi de tek seferde başlatmak için:
+
+```pwsh
+.\start-all.cmd  
+```
 ---
 
 ## 17. Doğrulama
@@ -479,21 +540,21 @@ Aşağıdaki script, Azure'da oluşturduğun kaynaklardan tüm endpoint ve isim 
 
 ```pwsh
 # --- 3. adımdaki değerlerle aynı olmalı (aynı oturumdaysan atlayabilirsin) ---
+
 $LOCATION   = "eastus2"
-$RG         = "rg-voice-live-avatar"
-$SPEECH     = "spavatar001"
-$SEARCH     = "srchavatar001"
-$DOCINT     = "docavatar001"
-$STORAGE    = "stavatar001"
+$RG         = "rg-healthcare-voice-live-avatar"
+$SPEECH     = "spavatarhealthcare"
+$SEARCH     = "srchavatarhealthcare"
+$DOCINT     = "docavatarhealthcare"
+$STORAGE    = "stavatarhealthcare"
 $CONTAINER  = "knowledge"
-$FOUNDRY    = "aifoundryavatar001"
+$FOUNDRY    = "aifoundryavatarhealthcare"
 $CHAT_DEPLOYMENT      = "gpt-5.4"
 $EMBEDDING_DEPLOYMENT = "text-embedding-3-small"
-$REALTIME_DEPLOYMENT  = "gpt-realtime-2.1"
 
 # --- 14. adımın (setup-service-identity.ps1) çıktısından gelen servis kullanıcısı değerleri ---
-$AZURE_CLIENT_ID     = "<14. adım çıktısındaki appId>"
-$AZURE_CLIENT_SECRET = "<14. adım çıktısındaki secret>"
+$AZURE_CLIENT_ID     = ""
+$AZURE_CLIENT_SECRET = ""
 
 # --- Azure'dan endpoint / id değerlerini topla ---
 $SUB_ID          = az account show --query id -o tsv
@@ -515,8 +576,6 @@ AZURE_CLIENT_ID=$AZURE_CLIENT_ID
 AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET
 AZURE_MANAGED_IDENTITY_CLIENT_ID=
 
-ASSISTANT_DOMAIN=education
-ASSISTANT_PROFILE=teacher-default
 DEFAULT_LANGUAGE=tr-TR
 
 VOICE_MODE_DEFAULT=voice-only
@@ -544,35 +603,37 @@ AZURE_OPENAI_RESOURCE_GROUP=$RG
 AZURE_OPENAI_ENDPOINT=$FOUNDRY_OAI_EP
 AZURE_OPENAI_CHAT_DEPLOYMENT=$CHAT_DEPLOYMENT
 AZURE_OPENAI_EMBEDDING_DEPLOYMENT=$EMBEDDING_DEPLOYMENT
-AZURE_OPENAI_REALTIME_DEPLOYMENT=$REALTIME_DEPLOYMENT
 
 AZURE_VOICE_LIVE_ENDPOINT=$FOUNDRY_CS_EP
-AZURE_VOICE_LIVE_MODEL=$REALTIME_DEPLOYMENT
+AZURE_VOICE_LIVE_MODEL=gpt-realtime
 AZURE_VOICE_LIVE_API_VERSION=2025-05-01-preview
-AZURE_VOICE_LIVE_TRANSCRIPTION_MODEL=mai-transcribe-1.5
+AZURE_VOICE_LIVE_TRANSCRIPTION_MODEL=azure-speech
 AZURE_VOICE_LIVE_VAD=azure_semantic_vad_multilingual
 
 AZURE_AUTH_MODE=service-principal
 KNOWLEDGE_USE_AZURE_CLI_CREDENTIAL=false
 "@
 
-# --- Repo köküne yaz ---
-$envPath = Join-Path (Get-Location) ".env.development"
+# --- Repo kökünü bul (azure.yaml'a göre yukarı doğru ara) ve .env olarak yaz ---
+$repoRoot = (Get-Location).Path
+while ($repoRoot -and -not (Test-Path (Join-Path $repoRoot 'azure.yaml'))) {
+  $parent = Split-Path $repoRoot -Parent
+  if (-not $parent -or $parent -eq $repoRoot) { $repoRoot = $null; break }
+  $repoRoot = $parent
+}
+if (-not $repoRoot) {
+  throw "Repo kökü bulunamadı (azure.yaml yok). Repo kök dizininde çalıştır: cd C:\Projects\voice-live-avatar"
+}
+$envPath = Join-Path $repoRoot ".env"
 Set-Content -Path $envPath -Value $envContent -Encoding utf8 -NoNewline
-Write-Host ".env.development oluşturuldu: $envPath" -ForegroundColor Green
+Write-Host ".env oluşturuldu: $envPath" -ForegroundColor Green
 ```
 
-> **Not:** Scripti repo kök dizininde çalıştır; dosya bulunduğun dizine (`Get-Location`) yazılır. Boş gelen bir alan görürsen ilgili `az ... show` komutunun çıktısını ve kaynak isimlerini kontrol et.
+> **Not:** Script, bulunduğun dizinden yukarı doğru `azure.yaml` arayarak repo kökünü bulur ve `.env`'i **her zaman repo köküne** yazar; alt klasörden (ör. `scripts/knowledge-ingestion`) çalıştırsan bile doğru yere yazılır. Boş gelen bir alan görürsen ilgili `az ... show` komutunun çıktısını ve kaynak isimlerini kontrol et.
 
-### Oluşan Dosyayı Kullan
+Artık repo kökündeki `.env` doğru değerlerle dolu; 15. adım (knowledge ingestion) ve 16. adım (uygulamaları çalıştırma) ile devam edebilirsin.
 
-Son adım: mevcut `.env` dosyasını yeni üretilen dosya ile değiştir. **Kullanıcı sadece bunu yapmalı:**
-
-```pwsh
-Copy-Item .env.development .env -Force
-```
-
-Artık `.env` doğru değerlerle dolu; 15. adım (knowledge ingestion) ve 16. adım (uygulamaları çalıştırma) ile devam edebilirsin.
+> Var olan bir `.env` üzerine yazılır. Önce yedek almak istersen: `Copy-Item .env .env.bak -Force`.
 
 ---
 
@@ -584,6 +645,7 @@ Artık `.env` doğru değerlerle dolu; 15. adım (knowledge ingestion) ve 16. ad
 | `Missing required environment variables` | `.env` eksik | 13. adımdaki tüm alanları doldur |
 | Model deployment hatası (quota) | Bölgede kota yok | İlgili model için kota talebi aç veya bölge değiştir |
 | Voice Live bağlanamıyor | Foundry custom domain / endpoint yanlış | `AZURE_VOICE_LIVE_ENDPOINT` cognitiveservices endpoint olmalı |
+| Voice Live bağlanıp hemen/~5 sn sonra kapanıyor (`ECONNRESET` / code 1006) | `AZURE_VOICE_LIVE_MODEL`'e deployment adı (`gpt-realtime-2.1`) verilmiş **veya** desteklenmeyen transkripsiyon modeli | `AZURE_VOICE_LIVE_MODEL=gpt-realtime` (temel model adı) ve `AZURE_VOICE_LIVE_TRANSCRIPTION_MODEL=azure-speech` kullan; backend logunda `[VoiceLive] Upstream ...` satırlarına bak |
 | Search kapasite hatası | Bölge kapasitesi dolu | Search'ü farklı bölgede oluştur (7. adım) |
 | Türkçe için "Unsupported locales: tr" | Voice Live `turn_detection.languages` alanına `tr` gönderilmiş | Türkçe için bu alanı boş bırak |
 

@@ -212,7 +212,6 @@ async function loadBackendConfig() {
 
     updateVoiceOptionsForLanguage(elements.language.value, backendConfig.defaultVoice || '');
 
-    appendLog(`Profile: ${backendConfig.assistantDomain}/${backendConfig.assistantProfile}`);
     appendLog(`Default language: ${backendConfig.defaultLanguage}`);
     appendLog(`RAG endpoint: ${backendConfig.rag.endpoint}`);
     appendLog(`Voice catalog loaded: ${voiceCatalog.length}`);

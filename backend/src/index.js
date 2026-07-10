@@ -315,18 +315,23 @@ function getDefaultVoiceForLanguage(language) {
 }
 
 function buildVoiceLiveInstructions(language) {
-  const domain = process.env.ASSISTANT_DOMAIN || 'education';
-  const profile = process.env.ASSISTANT_PROFILE || 'teacher-default';
   const langInstruction = String(language || '').toLowerCase().startsWith('tr')
     ? 'Kullaniciya Turkce yanit ver.'
     : 'Reply in English.';
 
   return [
-    `You are a multilingual, domain-adaptive voice assistant. Active domain: ${domain}. Active profile: ${profile}.`,
+    'You are a retrieval-grounded voice assistant. You may ONLY answer using information returned by the search_knowledge function from the organizational knowledge base.',
     langInstruction,
-    'For any factual or domain-specific question, first call the search_knowledge function to ground your answer in the knowledge base, then answer concisely using only that information and mention the source.',
-    'If the knowledge base returns nothing relevant, say so honestly. Never fabricate citations. Keep spoken answers short and natural.'
+    'For every user question, you MUST first call the search_knowledge function. Base your answer strictly and exclusively on the returned passages, and mention the source.',
+    'If search_knowledge returns nothing relevant, or the question is outside the scope of the knowledge base, do NOT answer from your own general knowledge. Instead, politely say you can only help with topics covered in the knowledge base and cannot answer that question. In Turkish say: "Uzgunum, yalnizca bilgi tabanindaki konularda yardimci olabiliyorum; bu soruyu yanitlayamiyorum."',
+    'Never use outside knowledge, never speculate, and never fabricate citations. Keep spoken answers short and natural.'
   ].join(' ');
+}
+
+function buildOutOfScopeInstruction(language) {
+  return String(language || '').toLowerCase().startsWith('tr')
+    ? 'Bilgi tabaninda bu soruyla ilgili bir sonuc bulunamadi. Kendi genel bilginle CEVAP VERME. Sadece su mesaji soyle: "Uzgunum, yalnizca bilgi tabanindaki konularda yardimci olabiliyorum; bu soruyu yanitlayamiyorum." Baska hicbir sey ekleme.'
+    : 'The knowledge base returned no relevant result for this question. Do NOT answer from your own general knowledge. Say only: "Sorry, I can only help with topics covered in the knowledge base, so I cannot answer that question." Add nothing else.';
 }
 
 function buildTurnDetection() {
@@ -458,7 +463,17 @@ async function maybeHandleFunctionCall(rawData, upstream, language, connState) {
   // meantime. A barge-in advances connState.turn, so the interrupted question's
   // response is suppressed and the newer question drives its own response.
   if (!connState || connState.turn === turnAtStart) {
-    upstream.send(JSON.stringify({ type: 'response.create' }));
+    // Hard guard: if the knowledge base returned nothing usable, force a fixed
+    // refusal so the model cannot answer from its own general knowledge.
+    const hasGrounding = Boolean((output.answer || '').trim()) || (output.citations || []).length > 0;
+    if (!hasGrounding) {
+      upstream.send(JSON.stringify({
+        type: 'response.create',
+        response: { instructions: buildOutOfScopeInstruction(language) }
+      }));
+    } else {
+      upstream.send(JSON.stringify({ type: 'response.create' }));
+    }
   } else {
     console.log('[VoiceLive] Suppressed stale answer after barge-in.');
   }
@@ -500,6 +515,16 @@ async function handleVoiceLiveConnection(clientWs, req) {
     try { if (upstream.readyState === upstream.OPEN) upstream.close(); } catch { /* noop */ }
   };
 
+  // Forward a human-readable diagnostic line to the browser so it shows up in
+  // the UI log panel using the same log structure as the other client events.
+  const sendDiagnostic = (text) => {
+    try {
+      if (clientWs.readyState === clientWs.OPEN) {
+        clientWs.send(JSON.stringify({ type: 'voice_live.diagnostic', message: text }));
+      }
+    } catch { /* noop */ }
+  };
+
   upstream.on('open', () => {
     upstream.send(JSON.stringify(buildVoiceLiveSessionUpdate(language, voice, {
       avatar: avatarEnabled,
@@ -534,6 +559,14 @@ async function handleVoiceLiveConnection(clientWs, req) {
         case 'response.cancelled':
           connState.responseActive = false;
           break;
+        case 'error':
+        case 'session.error':
+        case 'response.error': {
+          const detail = JSON.stringify(evt.error || evt);
+          console.error('[VoiceLive] Service error event:', detail);
+          sendDiagnostic(`Voice Live servis hatasi: ${evt.error?.message || evt.error?.code || detail}`);
+          break;
+        }
         default:
           break;
       }
@@ -546,9 +579,17 @@ async function handleVoiceLiveConnection(clientWs, req) {
     });
   });
 
-  upstream.on('close', closeBoth);
+  upstream.on('close', (code, reason) => {
+    const reasonText = reason?.toString?.() || '';
+    if (code !== 1000 && code !== 1005) {
+      console.error(`[VoiceLive] Upstream closed: code=${code} reason=${reasonText}`);
+      sendDiagnostic(`Voice Live upstream kapandi: code=${code}${reasonText ? ` reason=${reasonText}` : ''}`);
+    }
+    closeBoth();
+  });
   upstream.on('error', (error) => {
     console.error('[VoiceLive] Upstream error:', error.message);
+    sendDiagnostic(`Voice Live upstream hatasi: ${error.message}`);
     closeBoth();
   });
 
@@ -577,8 +618,6 @@ app.get('/healthz', (_req, res) => {
 
 app.get('/api/config', (_req, res) => {
   res.json({
-    assistantDomain: process.env.ASSISTANT_DOMAIN || 'education',
-    assistantProfile: process.env.ASSISTANT_PROFILE || 'teacher-default',
     defaultLanguage: process.env.DEFAULT_LANGUAGE || 'tr-TR',
     modeConfig,
     speech: {
@@ -660,7 +699,7 @@ app.post('/api/chat/fallback', async (req, res) => {
       messages: [
         {
           role: 'system',
-          content: `You are a multilingual domain-adaptive assistant. Active domain: ${process.env.ASSISTANT_DOMAIN || 'education'}. Active profile: ${process.env.ASSISTANT_PROFILE || 'teacher-default'}. Reply in ${language}. Keep the answer concise and safe.`
+          content: `You are a retrieval-grounded assistant. Answer ONLY using the knowledge base context provided to you. If the answer is not contained in that context, or the question is outside its scope, do not answer from general knowledge; instead reply that you can only help with topics covered in the knowledge base. Never speculate or fabricate. Reply in ${language}. Keep the answer concise and safe.`
         },
         {
           role: 'user',
