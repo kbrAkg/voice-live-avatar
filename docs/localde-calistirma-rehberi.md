@@ -421,7 +421,7 @@ Atanan roller (özet):
 
 ## 15. Bilgi Tabanını Yükle (Knowledge Ingestion)
 
-> **Ön koşul:** Bu adım repo kökündeki `.env` dosyasını okur. Devam etmeden önce `.env` **dolu** olmalı (özellikle `AZURE_SEARCH_SERVICE`, `AZURE_STORAGE_ACCOUNT`, `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_EMBEDDING_DEPLOYMENT`). Henüz oluşturmadıysan **önce [18. adımdaki](#18-envdevelopment-dosyasını-otomatik-oluştur) scripti çalıştır** (veya 13. adımı elle doldur) ve `Copy-Item .env.development .env -Force` ile `.env`'i yerine koy.
+> **Ön koşul:** Bu adım repo kökündeki `.env` dosyasını okur. Devam etmeden önce `.env` **dolu** olmalı
 >
 > `Missing required environment variables: AZURE_SEARCH_SERVICE, AZURE_STORAGE_ACCOUNT, AZURE_OPENAI_ENDPOINT` hatası tam olarak `.env`'in eksik/boş olduğunu gösterir.
 >
