@@ -291,7 +291,7 @@ Write-Host "AZURE_SUBSCRIPTION_ID               = $SUB_ID"
 
 ## 13. `.env` Dosyasını Oluştur
 
-> **Önerilen:** Bu adımı elle doldurmak yerine, dokümanın sonundaki [**18. `.env` Dosyasını Otomatik Oluştur**](#18-env-dosyasını-otomatik-oluştur) adımındaki scripti kullanabilirsin. O script tüm endpoint ve isim değerlerini Azure'dan toplayıp dosyayı doğru şekilde doldurur. Elle doldurmak istersen aşağıdaki şablonu kullan.
+> **Önerilen:** Bu adımı elle doldurmak yerine, dokümanın sonundaki [**18. `.env` Dosyasını Otomatik Oluştur**](#18-env-dosyasını-otomatik-oluştur) adımındaki scripti kullanabilirsin. O script tüm endpoint ve isim değerlerini Azure'dan toplayıp dosyayı doğru şekilde doldurur.Eğer 18 ile devam edeceksen önce 14'ü de tamamla. Elle doldurmak istersen aşağıdaki şablonu kullan.
 
 Repo kökünde `.env` oluştur:
 
@@ -372,7 +372,7 @@ Bu tek komut şunları yapar:
 $SUB_ID = az account show --query id -o tsv
 
 # Oluşturulacak servis kullanıcısının (service principal) adı
-$SP_NAME = "sp-healthcare-voice-live-avatar-dev"
+$SP_NAME = "sp-voice-avatar-healthcare-test"
 
 ./scripts/setup-service-identity.ps1 `
   -SubscriptionId $SUB_ID `
