@@ -64,17 +64,17 @@ Aşağıdaki bloğu **tek seferde** çalıştır. İsimleri kendine göre deği�
 
 ```pwsh
 $LOCATION   = "eastus2"
-$RG         = "rg-voice-avatar-healthcare-test"
+$RG         = "rg-voice-avatar-demo"
 
 # Managed servisler (bu RG içinde)
-$SPEECH     = "spavatarhealthcaretest"
-$SEARCH     = "srchavatarhealthcaretest"
-$DOCINT     = "docavatarhealthcaretest"
-$STORAGE    = "stavatarhealthcaretest"
+$SPEECH     = "spvoiceavatardemo"
+$SEARCH     = "srchvoiceavatardemo"
+$DOCINT     = "docvoiceavatardemo"
+$STORAGE    = "stvoiceavatardemo"
 $CONTAINER  = "knowledge"
 
 # Azure AI Foundry (OpenAI + Voice Live) — aynı RG içinde
-$FOUNDRY    = "aifoundryavatarhealthcaretest"
+$FOUNDRY    = "aifoundryvoiceavatardemo"
 
 # Model deployment adları (.env ile birebir aynı olmalı)
 $CHAT_DEPLOYMENT      = "gpt-5.4"
@@ -305,7 +305,7 @@ Copy-Item .env.example .env
 AZURE_LOCATION=eastus2
 AZURE_ENV_NAME=dev
 AZURE_SUBSCRIPTION_ID=<sub-id>
-AZURE_RESOURCE_GROUP=rg-voice-avatar-test
+AZURE_RESOURCE_GROUP=rg-voice-avatar-demo
 
 # Servis kullanıcısı (14. adımda doldurulacak)
 AZURE_TENANT_ID=<tenant-id>
@@ -324,25 +324,25 @@ MCP_BASE_URL=http://localhost:8082
 
 # Speech
 AZURE_SPEECH_RESOURCE_ID=<speech-resource-id>
-AZURE_SPEECH_ACCOUNT_NAME=spavatarhealthcaretest
+AZURE_SPEECH_ACCOUNT_NAME=spvoiceavatardemo
 AZURE_SPEECH_REGION=eastus2
 
 # Search
-AZURE_SEARCH_SERVICE=srchavatarhealthcaretest
+AZURE_SEARCH_SERVICE=srchvoiceavatardemo
 AZURE_SEARCH_INDEX=knowledge-index
 
 # Storage
-AZURE_STORAGE_ACCOUNT=stavatarhealthcaretest
+AZURE_STORAGE_ACCOUNT=stvoiceavatardemo
 AZURE_STORAGE_CONTAINER=knowledge
 
 # Document Intelligence
-AZURE_DOCUMENT_INTELLIGENCE_ACCOUNT_NAME=docavatarhealthcaretest
+AZURE_DOCUMENT_INTELLIGENCE_ACCOUNT_NAME=docvoiceavatardemo
 AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=<docint-endpoint>
 
 # Azure AI Foundry (OpenAI) — bu RG içinde
-AZURE_OPENAI_ACCOUNT_NAME=aifoundryavatarhealthcaretest
-AZURE_OPENAI_RESOURCE_GROUP=rg-voice-avatar-test
-AZURE_OPENAI_ENDPOINT=https://aifoundryavatarhealthcaretest.openai.azure.com/
+AZURE_OPENAI_ACCOUNT_NAME=aifoundryvoiceavatardemo
+AZURE_OPENAI_RESOURCE_GROUP=rg-voice-avatar-demo
+AZURE_OPENAI_ENDPOINT=https://aifoundryvoiceavatardemo.openai.azure.com/
 AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-5.4
 AZURE_OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-3-small
 
@@ -507,13 +507,13 @@ Aşağıdaki script, Azure'da oluşturduğun kaynaklardan tüm endpoint ve isim 
 # --- 3. adımdaki değerlerle aynı olmalı (aynı oturumdaysan atlayabilirsin) ---
 
 $LOCATION   = "eastus2"
-$RG         = "rg-voice-avatar-healthcare-test"
-$SPEECH     = "spavatarhealthcaretest"
-$SEARCH     = "srchavatarhealthcaretest"
-$DOCINT     = "docavatarhealthcaretest"
-$STORAGE    = "stavatarhealthcaretest"
+$RG         = "rg-voice-avatar-demo"
+$SPEECH     = "spvoiceavatardemo"
+$SEARCH     = "srchvoiceavatardemo"
+$DOCINT     = "docvoiceavatardemo"
+$STORAGE    = "stvoiceavatardemo"
 $CONTAINER  = "knowledge"
-$FOUNDRY    = "aifoundryavatarhealthcaretest"
+$FOUNDRY    = "aifoundryvoiceavatardemo"
 $CHAT_DEPLOYMENT      = "gpt-5.4"
 $EMBEDDING_DEPLOYMENT = "text-embedding-3-small"
 

@@ -103,7 +103,7 @@ async function buildSpeechAccessToken() {
 
   // Exchange AAD token for Speech STS token using custom subdomain endpoint
   const speechEndpoint = process.env.AZURE_SPEECH_ENDPOINT ||
-    `https://${process.env.AZURE_SPEECH_ACCOUNT_NAME || 'spavatarpoc001'}.cognitiveservices.azure.com`;
+    `https://${process.env.AZURE_SPEECH_ACCOUNT_NAME || 'your-speech-account'}.cognitiveservices.azure.com`;
 
   const stsResponse = await fetch(
     `${speechEndpoint}/sts/v1.0/issueToken`,
