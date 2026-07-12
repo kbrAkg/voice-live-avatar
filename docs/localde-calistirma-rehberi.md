@@ -2,8 +2,6 @@
 
 Bu doküman, projeyi **sıfırdan** kurup **lokalde** çalıştırmak için gereken tüm adımları tek bir akışta içerir. Sonunda:
 
-push protection deneme
-
 - Tek bir resource group içinde tüm Azure servisleri kurulmuş olur.
 - Modeller (chat, embedding, realtime/Voice Live) deploy edilmiş olur.
 - Anahtarsız (keyless / RBAC) çalışan bir **servis kullanıcısı** (service principal) oluşturulur ve tüm yetkiler atanır.
