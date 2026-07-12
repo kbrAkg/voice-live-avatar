@@ -1,0 +1,16 @@
+# Code owners for voice-live-avatar
+# Every change requires review from the listed owner(s).
+# Reference: https://docs.github.com/articles/about-code-owners
+
+# Global owner — all files
+*                   @kbrAkg
+
+# Infrastructure & deployment (extra care)
+/infra/             @kbrAkg
+/azure.yaml         @kbrAkg
+/scripts/           @kbrAkg
+
+# Backend / MCP / frontend services
+/backend/           @kbrAkg
+/mcp-server/        @kbrAkg
+/frontend/          @kbrAkg
