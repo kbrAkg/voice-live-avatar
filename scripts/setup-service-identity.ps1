@@ -23,7 +23,8 @@
     - Cognitive Services User            -> Speech, Document Intelligence
     - Cognitive Services OpenAI User     -> Foundry / Azure OpenAI (harici RG)
     - Cognitive Services User (Foundry)  -> Voice Live realtime (harici RG)
-    - Search Index Data Contributor      -> Azure AI Search
+    - Search Index Data Contributor      -> Azure AI Search (veri: doküman okuma/yazma)
+    - Search Service Contributor         -> Azure AI Search (yönetim: indeks oluşturma)
     - Storage Blob Data Contributor      -> Azure Storage
     - AcrPull                            -> Azure Container Registry
 
@@ -72,6 +73,7 @@ $Roles = @{
   CognitiveServicesUser        = 'a97b65f3-24c7-4388-baec-2e87135dc908'
   CognitiveServicesOpenAIUser  = '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
   SearchIndexDataContributor   = '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
+  SearchServiceContributor     = '7ca78c08-252a-4471-8644-bb5ff32d4ba0'
   StorageBlobDataContributor   = 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
   AcrPull                      = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
 }
@@ -166,6 +168,10 @@ function Assign-AllRoles {
   Assign-Role -PrincipalId $PrincipalId -PrincipalType $PrincipalType `
     -RoleId $Roles.SearchIndexDataContributor -Scope $script:SearchScope `
     -Description 'Search Index Data Contributor'
+
+  Assign-Role -PrincipalId $PrincipalId -PrincipalType $PrincipalType `
+    -RoleId $Roles.SearchServiceContributor -Scope $script:SearchScope `
+    -Description 'Search Service Contributor'
 
   Assign-Role -PrincipalId $PrincipalId -PrincipalType $PrincipalType `
     -RoleId $Roles.StorageBlobDataContributor -Scope $script:StorageScope `

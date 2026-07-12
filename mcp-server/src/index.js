@@ -114,7 +114,7 @@ async function searchDocuments(question) {
                 {
                   kind: 'vector',
                   vector,
-                  fields: vectorField,
+                  fields: [vectorField],
                   kNearestNeighborsCount: 5
                 }
               ]
@@ -171,8 +171,7 @@ async function answerWithFoundry(question, language, documents) {
 
   const completion = await client.chat.completions.create({
     model: process.env.AZURE_OPENAI_CHAT_DEPLOYMENT,
-    temperature: 0.2,
-    max_tokens: 700,
+    max_completion_tokens: 700,
     messages: [
       {
         role: 'system',

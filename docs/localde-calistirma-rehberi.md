@@ -1,4 +1,4 @@
-# Müşteri Kurulum Rehberi — Voice Live Avatar (Uçtan Uca, Tek RG)
+# Localde Çalıştırma Rehberi — Voice Live Avatar (Uçtan Uca, Tek RG)
 
 Bu doküman, projeyi **sıfırdan** kurup **lokalde** çalıştırmak için gereken tüm adımları tek bir akışta içerir. Sonunda:
 
@@ -64,17 +64,17 @@ Aşağıdaki bloğu **tek seferde** çalıştır. İsimleri kendine göre deği�
 
 ```pwsh
 $LOCATION   = "eastus2"
-$RG         = "rg-healthcare-voice-live-avatar"
+$RG         = "rg-voice-avatar-healthcare-test"
 
 # Managed servisler (bu RG içinde)
-$SPEECH     = "spavatarhealthcare"
-$SEARCH     = "srchavatarhealthcare"
-$DOCINT     = "docavatarhealthcare"
-$STORAGE    = "stavatarhealthcare"
+$SPEECH     = "spavatarhealthcaretest"
+$SEARCH     = "srchavatarhealthcaretest"
+$DOCINT     = "docavatarhealthcaretest"
+$STORAGE    = "stavatarhealthcaretest"
 $CONTAINER  = "knowledge"
 
 # Azure AI Foundry (OpenAI + Voice Live) — aynı RG içinde
-$FOUNDRY    = "aifoundryavatarhealthcare"
+$FOUNDRY    = "aifoundryavatarhealthcaretest"
 
 # Model deployment adları (.env ile birebir aynı olmalı)
 $CHAT_DEPLOYMENT      = "gpt-5.4"
@@ -107,6 +107,8 @@ az group create --name $RG --location $LOCATION
 
 Avatar ve konuşma (STT/TTS) token'ları için.
 
+> **Önemli:** Bu proje anahtarsız (Entra ID / RBAC) çalışır. Entra ID ile Speech kimlik doğrulaması **custom subdomain zorunlu kılar**. Bu yüzden `--custom-domain $SPEECH` **mutlaka** verilmelidir; aksi halde backend token değişimi `Speech token request failed with 500: fetch failed` hatası verir. Custom subdomain sonradan eklenemez; unutursan kaynağı silip yeniden oluşturman gerekir.
+
 ```pwsh
 az cognitiveservices account create `
   --name $SPEECH `
@@ -114,6 +116,7 @@ az cognitiveservices account create `
   --location $LOCATION `
   --kind SpeechServices `
   --sku S0 `
+  --custom-domain $SPEECH `
   --yes
 ```
 
@@ -192,40 +195,8 @@ az storage container create `
   --auth-mode login
 ```
 
-> **Not:** `--allow-blob-public-access false`, blob'lara **anonim** erişimi kapatır (güvenlik için önerilir); veri düzlemi erişimi RBAC ile yapılır. `--public-network-access Enabled` ve `--default-action Allow` ise storage'a **ağ üzerinden** (senin makinenden ve uygulamalardan) erişimi açık tutar. Bu ikisi birbirinden bağımsızdır.
+> **Not:** `--public-network-access Enabled` ve `--default-action Allow` storage'a **ağ üzerinden** (senin makinenden ve uygulamalardan) erişimi açık tutar. Test için gereklidir, production'da önerilmez.
 
-### `The request may be blocked by network rules of storage account` hatası alırsanız
-
-Bu hata iki nedenden olabilir:
-
-1. **Ağ kuralları kapalı** (yukarıdaki `--default-action Allow` verilmemiş eski bir hesap). Mevcut hesabı ağa açmak için:
-
-   ```pwsh
-   az storage account update `
-     --name $STORAGE `
-     --resource-group $RG `
-     --public-network-access Enabled `
-     --default-action Allow
-
-   # Ağ kural setini doğrula (defaultAction = Allow olmalı)
-   az storage account show --name $STORAGE --resource-group $RG --query networkRuleSet
-   ```
-
-2. **RBAC henüz yayılmadı.** `--auth-mode login` veri düzlemi çağrısı için hesabında **Storage Blob Data Contributor** rolü gerekir; rol atandıysa bile yayılması birkaç dakika sürebilir. Rolü kendine hemen atamak için:
-
-   ```pwsh
-   $STORAGE_ID = az storage account show --name $STORAGE --resource-group $RG --query id -o tsv
-   $ME = az ad signed-in-user show --query id -o tsv
-   az role assignment create `
-     --assignee-object-id $ME `
-     --assignee-principal-type User `
-     --role "Storage Blob Data Contributor" `
-     --scope $STORAGE_ID
-   ```
-
-   Birkaç dakika bekleyip `az storage container create` komutunu tekrar çalıştır.
-
----
 
 ## 10. Azure AI Foundry (OpenAI + Voice Live) Oluştur
 
@@ -320,7 +291,7 @@ Write-Host "AZURE_SUBSCRIPTION_ID               = $SUB_ID"
 
 ## 13. `.env` Dosyasını Oluştur
 
-> **Önerilen:** Bu adımı elle doldurmak yerine, dokümanın sonundaki [**18. `.env.development` Dosyasını Otomatik Oluştur**](#18-envdevelopment-dosyasını-otomatik-oluştur) adımındaki scripti kullanabilirsin. O script tüm endpoint ve isim değerlerini Azure'dan toplayıp dosyayı doğru şekilde doldurur. Elle doldurmak istersen aşağıdaki şablonu kullan.
+> **Önerilen:** Bu adımı elle doldurmak yerine, dokümanın sonundaki [**18. `.env` Dosyasını Otomatik Oluştur**](#18-env-dosyasını-otomatik-oluştur) adımındaki scripti kullanabilirsin. O script tüm endpoint ve isim değerlerini Azure'dan toplayıp dosyayı doğru şekilde doldurur. Elle doldurmak istersen aşağıdaki şablonu kullan.
 
 Repo kökünde `.env` oluştur:
 
@@ -334,7 +305,7 @@ Copy-Item .env.example .env
 AZURE_LOCATION=eastus2
 AZURE_ENV_NAME=dev
 AZURE_SUBSCRIPTION_ID=<sub-id>
-AZURE_RESOURCE_GROUP=rg-voice-live-avatar
+AZURE_RESOURCE_GROUP=rg-voice-avatar-test
 
 # Servis kullanıcısı (14. adımda doldurulacak)
 AZURE_TENANT_ID=<tenant-id>
@@ -353,34 +324,28 @@ MCP_BASE_URL=http://localhost:8082
 
 # Speech
 AZURE_SPEECH_RESOURCE_ID=<speech-resource-id>
-AZURE_SPEECH_ACCOUNT_NAME=spavatarhealthcare
+AZURE_SPEECH_ACCOUNT_NAME=spavatarhealthcaretest
 AZURE_SPEECH_REGION=eastus2
 
 # Search
-AZURE_SEARCH_SERVICE=srchavatarhealthcare
+AZURE_SEARCH_SERVICE=srchavatarhealthcaretest
 AZURE_SEARCH_INDEX=knowledge-index
 
 # Storage
-AZURE_STORAGE_ACCOUNT=stavatarhealthcare
+AZURE_STORAGE_ACCOUNT=stavatarhealthcaretest
 AZURE_STORAGE_CONTAINER=knowledge
 
 # Document Intelligence
-AZURE_DOCUMENT_INTELLIGENCE_ACCOUNT_NAME=docavatarhealthcare
+AZURE_DOCUMENT_INTELLIGENCE_ACCOUNT_NAME=docavatarhealthcaretest
 AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=<docint-endpoint>
 
 # Azure AI Foundry (OpenAI) — bu RG içinde
-AZURE_OPENAI_ACCOUNT_NAME=aifoundryavatarhealthcare
-AZURE_OPENAI_RESOURCE_GROUP=rg-voice-live-avatar
-AZURE_OPENAI_ENDPOINT=https://aifoundryavatarhealthcare.openai.azure.com/
+AZURE_OPENAI_ACCOUNT_NAME=aifoundryavatarhealthcaretest
+AZURE_OPENAI_RESOURCE_GROUP=rg-voice-avatar-test
+AZURE_OPENAI_ENDPOINT=https://aifoundryavatarhealthcaretest.openai.azure.com/
 AZURE_OPENAI_CHAT_DEPLOYMENT=gpt-5.4
 AZURE_OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-3-small
 
-# Voice Live (realtime)
-# NOT: Voice Live, Azure OpenAI deployment'ı DEĞİL, Microsoft'un hosted
-# katalog modelini kullanır. AZURE_VOICE_LIVE_MODEL, deployment adı (ör.
-# gpt-realtime-2.1) DEĞİL, Voice Live'ın beklediği TEMEL MODEL adıdır
-# (gpt-realtime). Deployment adını verirsen upstream bağlantısı ECONNRESET
-# ile sifirlanir.
 AZURE_VOICE_LIVE_ENDPOINT=<foundry-cognitiveservices-endpoint>
 AZURE_VOICE_LIVE_MODEL=gpt-realtime
 AZURE_VOICE_LIVE_API_VERSION=2025-05-01-preview
@@ -462,8 +427,8 @@ Atanan roller (özet):
 >
 > Hızlı kontrol (repo kökünde):
 > ```pwsh
-> Test-Path .env
-> Select-String -Path .env -Pattern 'AZURE_SEARCH_SERVICE|AZURE_STORAGE_ACCOUNT|AZURE_OPENAI_ENDPOINT'
+Test-Path .env
+Select-String -Path .env -Pattern 'AZURE_SEARCH_SERVICE|AZURE_STORAGE_ACCOUNT|AZURE_OPENAI_ENDPOINT'
 > ```
 
 Search index'ini oluştur, örnek dokümanları Blob'a yükle ve index'e işle:
@@ -532,9 +497,9 @@ az cognitiveservices account deployment list --name $FOUNDRY --resource-group $R
 
 ---
 
-## 18. `.env.development` Dosyasını Otomatik Oluştur
+## 18. `.env` Dosyasını Otomatik Oluştur
 
-Aşağıdaki script, Azure'da oluşturduğun kaynaklardan tüm endpoint ve isim değerlerini toplayarak repo kökünde **`.env.development`** adında hazır bir dosya üretir. Sonrasında tek yapman gereken mevcut `.env` dosyasını bu yeni dosya ile değiştirmek.
+Aşağıdaki script, Azure'da oluşturduğun kaynaklardan tüm endpoint ve isim değerlerini toplayarak repo kökünde **`.env`** adında hazır bir dosya üretir.
 
 > **Sıra:** Bu scripti **14. adımdan sonra** (servis kullanıcısı oluştuktan sonra) ve **15. adımdan önce** (knowledge ingestion'dan önce) çalıştır. Aynı PowerShell oturumunda çalışıyorsan 3. adımda tanımladığın değişkenler zaten hazırdır; farklı bir oturumda çalıştırıyorsan aşağıdaki değişken bloğunu kendi değerlerinle güncelle.
 
@@ -542,19 +507,19 @@ Aşağıdaki script, Azure'da oluşturduğun kaynaklardan tüm endpoint ve isim 
 # --- 3. adımdaki değerlerle aynı olmalı (aynı oturumdaysan atlayabilirsin) ---
 
 $LOCATION   = "eastus2"
-$RG         = "rg-healthcare-voice-live-avatar"
-$SPEECH     = "spavatarhealthcare"
-$SEARCH     = "srchavatarhealthcare"
-$DOCINT     = "docavatarhealthcare"
-$STORAGE    = "stavatarhealthcare"
+$RG         = "rg-voice-avatar-healthcare-test"
+$SPEECH     = "spavatarhealthcaretest"
+$SEARCH     = "srchavatarhealthcaretest"
+$DOCINT     = "docavatarhealthcaretest"
+$STORAGE    = "stavatarhealthcaretest"
 $CONTAINER  = "knowledge"
-$FOUNDRY    = "aifoundryavatarhealthcare"
+$FOUNDRY    = "aifoundryavatarhealthcaretest"
 $CHAT_DEPLOYMENT      = "gpt-5.4"
 $EMBEDDING_DEPLOYMENT = "text-embedding-3-small"
 
 # --- 14. adımın (setup-service-identity.ps1) çıktısından gelen servis kullanıcısı değerleri ---
-$AZURE_CLIENT_ID     = ""
-$AZURE_CLIENT_SECRET = ""
+$AZURE_CLIENT_ID=""
+$AZURE_CLIENT_SECRET=""
 
 # --- Azure'dan endpoint / id değerlerini topla ---
 $SUB_ID          = az account show --query id -o tsv
@@ -642,6 +607,8 @@ Artık repo kökündeki `.env` doğru değerlerle dolu; 15. adım (knowledge ing
 | Belirti | Olası neden | Çözüm |
 |---------|-------------|-------|
 | Search çağrılarında `403` | RBAC henüz yayılmadı veya AAD veri düzlemi kapalı | Birkaç dk bekle; `setup-service-identity.ps1` tekrar çalıştır |
+| İndeks oluşturmada `403` (`create-index`) | SP/kullanıcıda yalnızca `Search Index Data Contributor` var, `Search Service Contributor` yok | `setup-service-identity.ps1` tekrar çalıştır (artık `Search Service Contributor` de atar) |
+| `Speech token request failed with 500: fetch failed` | Speech kaynağı `--custom-domain` olmadan oluşturulmuş; Entra ID token değişimi için custom subdomain hostname'i yok | Speech kaynağını `--custom-domain $SPEECH` ile **yeniden oluştur** (6. adım), sonra RBAC'ı tekrar ata |
 | `Missing required environment variables` | `.env` eksik | 13. adımdaki tüm alanları doldur |
 | Model deployment hatası (quota) | Bölgede kota yok | İlgili model için kota talebi aç veya bölge değiştir |
 | Voice Live bağlanamıyor | Foundry custom domain / endpoint yanlış | `AZURE_VOICE_LIVE_ENDPOINT` cognitiveservices endpoint olmalı |
@@ -670,6 +637,6 @@ Artık repo kökündeki `.env` doğru değerlerle dolu; 15. adım (knowledge ing
 15. Knowledge ingestion (create-index → upload-samples → sync)
 16. `./start-all.cmd`
 17. Doğrula
-18. (Önerilen) `.env.development` üret ve `Copy-Item .env.development .env -Force` ile `.env` ile değiştir — **14. adımdan sonra / 15. adımdan önce** çalıştır
+18. (Önerilen) `.env` üret ve `Copy-Item .env .env -Force` ile `.env` ile değiştir — **14. adımdan sonra / 15. adımdan önce** çalıştır
 
 > **İpucu:** 13. adımı elle yapmak yerine 18. adımdaki scripti kullanman önerilir; tüm endpoint ve değerleri Azure'dan toplayıp `.env`'i doğru şekilde doldurur.
